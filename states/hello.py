@@ -28,7 +28,7 @@ class ActionState(BaseState):
 
 
 class ActionAppliedState(BaseState):
-    text = 'Sorry mistake with proccesing'
+    text = 'Sorry mistake with processing'
 
     def get_keyboard(self):
         keyboard = types.InlineKeyboardMarkup()
