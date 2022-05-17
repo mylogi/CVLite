@@ -9,7 +9,7 @@ class BaseState:
         self.chat_id = chat_id
 
     def display(self):
-        self.bot.send_message(self.chat_id, self.text, reply_markup=self.get_keyboard())
+        self.bot.send_message(self.chat_id, self.text, reply_markup=self.get_keyboard(), parse_mode='HTML')
 
     def send_warning(self, text):
         self.bot.send_message(self.chat_id, text)
