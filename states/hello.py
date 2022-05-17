@@ -17,7 +17,7 @@ class Hello(BaseState):
             if message.data == 'next state: AvailableCVTemplates':
                 return AvailableCVTemplates
             if message.data == 'next state: CVTips':
-                return CVTips
+                return CVTipsMenu
         return Hello
 
 
@@ -43,7 +43,7 @@ class AvailableCVTemplates(BaseState):
 
 
 class FirstTemplate(BaseState):
-    text = "First template"
+    text = "<b>First template</b>"
 
     def get_keyboard(self):
         keyboard = types.InlineKeyboardMarkup()
@@ -61,7 +61,7 @@ class FirstTemplate(BaseState):
 
 
 class SecondTemplate(BaseState):
-    text = "Second template"
+    text = "<b>Second template</b>"
 
     def get_keyboard(self):
         keyboard = types.InlineKeyboardMarkup()
@@ -78,28 +78,40 @@ class SecondTemplate(BaseState):
             return SecondTemplate
 
 
-class CreateCV(BaseState):
-    text = "<b>Create CV</b>\n\n Follow the instructions to create a CV.\n\n Good luck!"
-
-
-class CVTips(BaseState):
-    c = '<b>\t CV Tips</b> \n\n What is needed for CV? Read on!'
-
-    text = c.center(len(c) + 30, ' ')
+class CVTipsMenu(BaseState):
+    text = '<b>\t CV Tips</b> \n\n What is needed for CV? Read on!'
 
     def get_keyboard(self):
         keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(
+            types.InlineKeyboardButton(text='Next tip', callback_data='next state: NextTip'),
+            types.InlineKeyboardButton(text='Previous tip', callback_data='next state: PreviousTip')
+        )
         keyboard.add(types.InlineKeyboardButton(text='CV Templates', callback_data='next state: AvailableCVTemplates'))
         keyboard.add(types.InlineKeyboardButton(text='Back', callback_data='next state: Hello'))
         return keyboard
 
     def process_call_back(self, message: types.CallbackQuery) -> 'BaseState':
         if message.data:
+            if message.data == 'next state: NextTip':
+                pass
+            if message.data == 'next state: PreviousTip':
+                pass
             if message.data == 'next state: AvailableCVTemplates':
                 return AvailableCVTemplates
             if message.data == 'next state: Hello':
                 return Hello
-            return CVTips
+        return self
+
+    def send_tip(self, number):
+        self.bot.send_message(
+            self.chat_id, self.image_name_dictionary[number], parse_mode='HTML')
+        self.bot.send_message(
+            self.chat_id, self.tips_dictionary[number], parse_mode='HTML')
+
+
+class CreateCV(BaseState):
+    text = "<b>Create CV</b>\n\n Follow the instructions to create a CV.\n\n Good luck!"
 
 
 class ActionState(BaseState):
