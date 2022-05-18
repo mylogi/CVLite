@@ -2,6 +2,8 @@ from telebot import types
 
 from states.base import BaseState
 
+data_for_cv: dict = {}
+
 
 class BaseStateData(BaseState):
 
@@ -21,7 +23,18 @@ class BaseStateData(BaseState):
                 return FirstTemplate
             if message.data == 'next state: SecondTemplate':
                 return SecondTemplate
+            if message.data == 'next state: AddName':
+                return AddName
         return self.__class__
+
+
+class Template(BaseStateData):
+
+    def get_keyboard(self):
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(types.InlineKeyboardButton(text='Create CV', callback_data='next state: CreateCV'))
+        keyboard.add(types.InlineKeyboardButton(text='CV Templates', callback_data='next state: AvailableCVTemplates'))
+        return keyboard
 
 
 class Tip(BaseState):
@@ -34,6 +47,19 @@ class Tip(BaseState):
         )
         keyboard.add(types.InlineKeyboardButton(text='CVLite', callback_data='next state: CVLite'))
         return keyboard
+
+
+class CreateStep(BaseStateData):
+    text_2 = ""
+
+    def get_keyboard_new(self):
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: CreateCV'))
+        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddName'))
+        return keyboard
+
+    def display_new(self):
+        self.bot.send_message(self.chat_id, self.text_2, reply_markup=self.get_keyboard_new(), parse_mode='HTML')
 
 
 class Hello(BaseStateData):
@@ -67,24 +93,12 @@ class AvailableCVTemplates(BaseStateData):
         return keyboard
 
 
-class FirstTemplate(BaseStateData):
+class FirstTemplate(Template):
     text = "<b>First template</b>"
 
-    def get_keyboard(self):
-        keyboard = types.InlineKeyboardMarkup()
-        keyboard.add(types.InlineKeyboardButton(text='Create CV', callback_data='next state: CreateCV'))
-        keyboard.add(types.InlineKeyboardButton(text='CV Templates', callback_data='next state: AvailableCVTemplates'))
-        return keyboard
 
-
-class SecondTemplate(BaseStateData):
+class SecondTemplate(Template):
     text = "<b>Second template</b>"
-
-    def get_keyboard(self):
-        keyboard = types.InlineKeyboardMarkup()
-        keyboard.add(types.InlineKeyboardButton(text='Create CV', callback_data='next state: CreateCV'))
-        keyboard.add(types.InlineKeyboardButton(text='CV Templates', callback_data='next state: AvailableCVTemplates'))
-        return keyboard
 
 
 class FirstTip(Tip):
@@ -129,8 +143,45 @@ class ThirdTip(Tip):
         return ThirdTip
 
 
-class CreateCV(BaseStateData):
-    text = "<b>Create CV</b>\n\n Add your photo.\n\n Optimal performance: ..."
+class CreateCV(CreateStep):
+    text = "<b>Create CV</b>\n\n Drop photo here\n\n Requirements: ..."
+    text_2 = "<b>Photo received</b>\n\n Where next?"
+
+    def save_jpg(self, message):
+        file_id = message.photo[-1].file_id
+        data_for_cv[self.chat_id] = {'photo': file_id}
+        file_info = self.bot.get_file(file_id)
+        downloaded_file = self.bot.download_file(file_info.file_path)
+        with open('image.jpg', 'wb') as new_file:
+            new_file.write(downloaded_file)
+
+    def get_keyboard_new(self):
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: CreateCV'))
+        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddName'))
+        return keyboard
+
+
+class AddName(BaseStateData):
+    text = '<b>Next step</b>\n\n Enter your name'
+
+
+# class OptimizePhoto(BaseStateData):
+#     text = "Photo optimization options"
+#
+#     def get_keyboard(self):
+#         keyboard = types.InlineKeyboardMarkup()
+#         keyboard.add(types.InlineKeyboardButton(text='Auto optimize', callback_data='next state: AutoOptimize'))
+#         keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: TryAgain'))
+#         return keyboard
+#
+#     def process_call_back(self, message: types.CallbackQuery):
+#         if message.data:
+#             if message.data == 'next state: AutoOptimize':
+#                 return True
+#             if message.data == 'next state: TryAgain':
+#                 return CreateCV
+#         return OptimizePhoto
 
 
 class ActionState(BaseState):
