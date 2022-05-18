@@ -4,12 +4,13 @@ import telebot
 from dotenv import load_dotenv
 
 from states.base import BaseState
-from states.hello import Hello
+from states.hello import Hello, FirstTemplate, SecondTemplate
 
 load_dotenv()
 
 bot = telebot.TeleBot(os.getenv('TELEGRAM_SECRET'))
 clients: dict = {}
+current_template: dict = {}
 
 
 @bot.message_handler(commands=['start', 'help'])
@@ -23,6 +24,7 @@ def send_welcome(message: telebot.types.Message):
 def process_call_back(message):
     chat_id = message.from_user.id
     new_state_class = get_state(chat_id).process_call_back(message)
+    get_template(new_state_class, chat_id)
     clients[chat_id] = new_state_class
     display(chat_id)
 
@@ -46,6 +48,10 @@ def get_state(chat_id) -> BaseState:
     return instance_of_class
 
 
+def get_template(state: 'BaseState', chat_id):
+    if state in [FirstTemplate, SecondTemplate]:
+        current_template[chat_id] = state
+
+
 if __name__ == '__main__':
     bot.infinity_polling()
-   

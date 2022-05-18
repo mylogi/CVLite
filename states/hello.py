@@ -9,18 +9,18 @@ class BaseStateData(BaseState):
         if message.data:
             if message.data == 'next state: Hello':
                 return Hello
+            if message.data == 'next state: CVLite':
+                return CVLite
             if message.data == 'next state: AvailableCVTemplates':
                 return AvailableCVTemplates
             if message.data == 'next state: CVTips':
                 return FirstTip
+            if message.data == 'next state: CreateCV':
+                return CreateCV
             if message.data == 'next state: FirstTemplate':
                 return FirstTemplate
             if message.data == 'next state: SecondTemplate':
                 return SecondTemplate
-            if message.data == 'next state: CreateCV':
-                return CreateCV
-            if message.data == 'next state: CVTipsMenu':
-                return CVTipsMenu
         return self.__class__
 
 
@@ -32,12 +32,22 @@ class Tip(BaseState):
             types.InlineKeyboardButton(text='Next tip', callback_data='next state: NextTip'),
             types.InlineKeyboardButton(text='Previous tip', callback_data='next state: PreviousTip')
         )
-        keyboard.add(types.InlineKeyboardButton(text='CV Tips Menu', callback_data='next state: CVTipsMenu'))
+        keyboard.add(types.InlineKeyboardButton(text='CVLite', callback_data='next state: CVLite'))
         return keyboard
 
 
 class Hello(BaseStateData):
     text = "<b>Welcome to CVLite!</b>"
+
+    def get_keyboard(self):
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(types.InlineKeyboardButton(text='CV Templates', callback_data='next state: AvailableCVTemplates'))
+        keyboard.add(types.InlineKeyboardButton(text='CV Tips', callback_data='next state: CVTips'))
+        return keyboard
+
+
+class CVLite(BaseStateData):
+    text = "<b>CVLite</b>\n\n Where next?"
 
     def get_keyboard(self):
         keyboard = types.InlineKeyboardMarkup()
@@ -53,7 +63,7 @@ class AvailableCVTemplates(BaseStateData):
         keyboard = types.InlineKeyboardMarkup()
         keyboard.add(types.InlineKeyboardButton(text='1 template', callback_data='next state: FirstTemplate'))
         keyboard.add(types.InlineKeyboardButton(text='2 template', callback_data='next state: SecondTemplate'))
-        keyboard.add(types.InlineKeyboardButton(text='CVLite', callback_data='next state: Hello'))
+        keyboard.add(types.InlineKeyboardButton(text='CVLite', callback_data='next state: CVLite'))
         return keyboard
 
 
@@ -77,17 +87,6 @@ class SecondTemplate(BaseStateData):
         return keyboard
 
 
-class CVTipsMenu(BaseStateData):
-    text = '<b>\t CV Tips Menu</b> \n\n What is needed for CV? Read on!'
-
-    def get_keyboard(self):
-        keyboard = types.InlineKeyboardMarkup()
-        keyboard.add(types.InlineKeyboardButton(text='CV Tips', callback_data='next state: CVTips'))
-        keyboard.add(types.InlineKeyboardButton(text='CV Templates', callback_data='next state: AvailableCVTemplates'))
-        keyboard.add(types.InlineKeyboardButton(text='CVLite', callback_data='next state: Hello'))
-        return keyboard
-
-
 class FirstTip(Tip):
     text = "First tip"
 
@@ -97,8 +96,8 @@ class FirstTip(Tip):
                 return SecondTip
             if message.data == 'next state: PreviousTip':
                 return ThirdTip
-            if message.data == 'next state: CVTipsMenu':
-                return CVTipsMenu
+            if message.data == 'next state: CVLite':
+                return CVLite
         return FirstTip
 
 
@@ -111,8 +110,8 @@ class SecondTip(Tip):
                 return ThirdTip
             if message.data == 'next state: PreviousTip':
                 return FirstTip
-            if message.data == 'next state: CVTipsMenu':
-                return CVTipsMenu
+            if message.data == 'next state: CVLite':
+                return CVLite
         return SecondTip
 
 
@@ -125,13 +124,13 @@ class ThirdTip(Tip):
                 return FirstTip
             if message.data == 'next state: PreviousTip':
                 return SecondTip
-            if message.data == 'next state: CVTipsMenu':
-                return CVTipsMenu
+            if message.data == 'next state: CVLite':
+                return CVLite
         return ThirdTip
 
 
 class CreateCV(BaseStateData):
-    text = "<b>Create CV</b>\n\n Follow the instructions to create a CV.\n\n Good luck!"
+    text = "<b>Create CV</b>\n\n Add your photo.\n\n Optimal performance: ..."
 
 
 class ActionState(BaseState):
