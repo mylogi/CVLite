@@ -27,8 +27,8 @@ class BaseStateData(BaseState):
                 return AddName
             if message.data == 'next state: AddSurname':
                 return AddSurname
-            if message.data == 'next state: AddMail':
-                return AddMail
+            if message.data == 'next state: AddEmail':
+                return AddEmail
             if message.data == 'next state: AddMobNumber':
                 return AddMobNumber
         return self.__class__
@@ -194,17 +194,17 @@ class AddSurname(CreateStep):
     def get_keyboard_new(self):
         keyboard = types.InlineKeyboardMarkup()
         keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddSurname'))
-        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddMail'))
+        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddEmail'))
         return keyboard
 
 
-class AddMail(CreateStep):
-    text = '<b>Next step</b> \n\nEnter your mail'
-    text_2 = '<b>Mail received</b> \n\nWhere next?'
+class AddEmail(CreateStep):
+    text = '<b>Next step</b> \n\nEnter your email'
+    text_2 = '<b>Email received</b> \n\nWhere next?'
 
     def save_text(self, message):
         text_by_user = message.text
-        data_for_cv[self.chat_id]['mail'] = text_by_user
+        data_for_cv[self.chat_id]['email'] = text_by_user
 
     def get_keyboard_new(self):
         keyboard = types.InlineKeyboardMarkup()

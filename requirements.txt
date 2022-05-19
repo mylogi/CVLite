@@ -1,2 +1,4 @@
 pyTelegramBotApi
 python_dotenv
+fpdf
+Pillow

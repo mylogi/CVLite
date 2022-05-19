@@ -5,14 +5,14 @@ import telebot
 from dotenv import load_dotenv
 
 from states.base import BaseState
-from states.hello import Hello, FirstTemplate, SecondTemplate, CreateCV, AddName, AddSurname, AddMobNumber, AddMail
+from states.hello import Hello, FirstTemplate, SecondTemplate, CreateCV, AddName, AddSurname, AddMobNumber, AddEmail
 
 load_dotenv()
 
 bot = telebot.TeleBot(os.getenv('TELEGRAM_SECRET'))
 clients: dict = {}
 current_template: dict = {}
-direct_list: list = [AddName, AddSurname, AddMail, AddMobNumber]
+direct_list: list = [AddName, AddSurname, AddEmail, AddMobNumber]
 
 
 # data_for_cv: dict = {}
