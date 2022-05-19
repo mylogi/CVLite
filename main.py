@@ -1,16 +1,18 @@
 import os
+
 import telebot
 
 from dotenv import load_dotenv
 
 from states.base import BaseState
-from states.hello import Hello, FirstTemplate, SecondTemplate, CreateCV, AddName
+from states.hello import Hello, FirstTemplate, SecondTemplate, CreateCV, AddName, AddSurname, AddMobNumber, AddMail
 
 load_dotenv()
 
 bot = telebot.TeleBot(os.getenv('TELEGRAM_SECRET'))
 clients: dict = {}
 current_template: dict = {}
+direct_list: list = [AddName, AddSurname, AddMail, AddMobNumber]
 
 
 # data_for_cv: dict = {}
@@ -32,7 +34,7 @@ def process_call_back(message):
     display(chat_id)
 
 
-@bot.message_handler(func=lambda message: True)
+@bot.message_handler(func=lambda message: clients[message.chat.id] not in direct_list)
 def echo_all(message: telebot.types.Message):
     chat_id = message.chat.id
     new_state_class = get_state(chat_id).process_text_message(message)
@@ -40,17 +42,17 @@ def echo_all(message: telebot.types.Message):
     display(chat_id)
 
 
+@bot.message_handler(func=lambda message: clients[message.chat.id] in direct_list)
+def text_form(message: telebot.types.Message):
+    chat_id = message.chat.id
+    choice_text_processing(chat_id, message)
+
+
 @bot.message_handler(content_types=['photo'])
 def photo(message):
     chat_id = message.from_user.id
     state_variable = clients[chat_id]
-    if state_variable == CreateCV:
-        new_state_variable = CreateCV(bot, chat_id)
-        new_state_variable.save_jpg(message)
-        new_state_variable.display_new()
-    else:
-        bot.send_message(chat_id, "<b>Now it's useless.</b>", parse_mode='HTML')
-        display(chat_id)
+    save_jpg(state_variable, message, chat_id)
 
 
 def display(chat_id):
@@ -69,19 +71,24 @@ def get_template(state: 'BaseState', chat_id):
         current_template[chat_id] = state
 
 
-# def save_jpg(state, message, chat_id):
-#     if state == CreateCV:
-#         file_id = message.photo[-1].file_id
-#         data_for_cv['photo'] = file_id
-#         file_info = bot.get_file(file_id)
-#         downloaded_file = bot.download_file(file_info.file_path)
-#         with open('image.jpg', 'wb') as new_file:
-#             new_file.write(downloaded_file)
-#         return True
-#     else:
-#         bot.send_message(chat_id, "<b>Now it's useless.</b>", parse_mode='HTML')
-#         display(chat_id)
-#         return False
+def save_jpg(state, message, chat_id):
+    if state == CreateCV:
+        new_state_variable = CreateCV(bot, chat_id)
+        new_state_variable.save_jpg(message)
+        new_state_variable.display_new()
+    else:
+        bot.send_message(chat_id, "<b>Now it's useless.</b>", parse_mode='HTML')
+        display(chat_id)
+
+
+def choice_text_processing(chat_id, message):
+    text_processing(clients[chat_id], message, chat_id)
+
+
+def text_processing(state, message, chat_id):
+    new_state_variable = state(bot, chat_id)
+    new_state_variable.save_text(message)
+    new_state_variable.display_new()
 
 
 if __name__ == '__main__':

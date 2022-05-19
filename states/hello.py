@@ -25,6 +25,12 @@ class BaseStateData(BaseState):
                 return SecondTemplate
             if message.data == 'next state: AddName':
                 return AddName
+            if message.data == 'next state: AddSurname':
+                return AddSurname
+            if message.data == 'next state: AddMail':
+                return AddMail
+            if message.data == 'next state: AddMobNumber':
+                return AddMobNumber
         return self.__class__
 
 
@@ -73,7 +79,7 @@ class Hello(BaseStateData):
 
 
 class CVLite(BaseStateData):
-    text = "<b>CVLite</b>\n\n Where next?"
+    text = "<b>CVLite</b> \n\nWhere next?"
 
     def get_keyboard(self):
         keyboard = types.InlineKeyboardMarkup()
@@ -83,7 +89,7 @@ class CVLite(BaseStateData):
 
 
 class AvailableCVTemplates(BaseStateData):
-    text = "<b>CV Templates</b> \n\n Which one will you choose?"
+    text = "<b>CV Templates</b> \n\nWhich one will you choose?"
 
     def get_keyboard(self):
         keyboard = types.InlineKeyboardMarkup()
@@ -144,8 +150,8 @@ class ThirdTip(Tip):
 
 
 class CreateCV(CreateStep):
-    text = "<b>Create CV</b>\n\n Drop photo here\n\n Requirements: ..."
-    text_2 = "<b>Photo received</b>\n\n Where next?"
+    text = "<b>Create CV</b> \n\nDrop photo here \n\nRequirements: ..."
+    text_2 = "<b>Photo received</b> \n\nWhere next?"
 
     def save_jpg(self, message):
         file_id = message.photo[-1].file_id
@@ -162,8 +168,65 @@ class CreateCV(CreateStep):
         return keyboard
 
 
-class AddName(BaseStateData):
-    text = '<b>Next step</b>\n\n Enter your name'
+class AddName(CreateStep):
+    text = '<b>Next step</b> \n\nEnter your name'
+    text_2 = '<b>Name received</b> \n\nWhere next?'
+
+    def save_text(self, message):
+        text_by_user = message.text
+        data_for_cv[self.chat_id]['name'] = text_by_user.capitalize()
+
+    def get_keyboard_new(self):
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddName'))
+        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddSurname'))
+        return keyboard
+
+
+class AddSurname(CreateStep):
+    text = '<b>Next step</b> \n\nEnter your surname'
+    text_2 = '<b>Surname received</b> \n\nWhere next?'
+
+    def save_text(self, message):
+        text_by_user = message.text
+        data_for_cv[self.chat_id]['surname'] = text_by_user.capitalize()
+
+    def get_keyboard_new(self):
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddSurname'))
+        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddMail'))
+        return keyboard
+
+
+class AddMail(CreateStep):
+    text = '<b>Next step</b> \n\nEnter your mail'
+    text_2 = '<b>Mail received</b> \n\nWhere next?'
+
+    def save_text(self, message):
+        text_by_user = message.text
+        data_for_cv[self.chat_id]['mail'] = text_by_user
+
+    def get_keyboard_new(self):
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddSurname'))
+        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddMobNumber'))
+        return keyboard
+
+
+class AddMobNumber(CreateStep):
+    text = '<b>Next step</b> \n\nEnter your mobile number'
+    text_2 = '<b>Number received</b> \n\nWhere next?'
+
+    def save_text(self, message):
+        text_by_user = message.text
+        data_for_cv[self.chat_id]['number'] = text_by_user
+        print(data_for_cv)
+
+    def get_keyboard_new(self):
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddSurname'))
+        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddLinkedIn'))
+        return keyboard
 
 
 # class OptimizePhoto(BaseStateData):
