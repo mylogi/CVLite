@@ -33,6 +33,9 @@ class BaseStateData(BaseState):
                 return AddMobNumber
         return self.__class__
 
+    def return_step(self):
+        return self.__class__
+
 
 class Template(BaseStateData):
 
@@ -56,16 +59,12 @@ class Tip(BaseState):
 
 
 class CreateStep(BaseStateData):
-    text_2 = ""
 
-    def get_keyboard_new(self):
+    def get_keyboard(self):
         keyboard = types.InlineKeyboardMarkup()
         keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: CreateCV'))
         keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddName'))
         return keyboard
-
-    def display_new(self):
-        self.bot.send_message(self.chat_id, self.text_2, reply_markup=self.get_keyboard_new(), parse_mode='HTML')
 
 
 class Hello(BaseStateData):
@@ -149,9 +148,8 @@ class ThirdTip(Tip):
         return ThirdTip
 
 
-class CreateCV(CreateStep):
+class CreateCV(BaseStateData):
     text = "<b>Create CV</b> \n\nDrop photo here \n\nRequirements: ..."
-    text_2 = "<b>Photo received</b> \n\nWhere next?"
 
     def save_jpg(self, message):
         file_id = message.photo[-1].file_id
@@ -161,68 +159,99 @@ class CreateCV(CreateStep):
         with open('image.jpg', 'wb') as new_file:
             new_file.write(downloaded_file)
 
-    def get_keyboard_new(self):
+    def return_step(self):
+        return CreateCVStep
+
+
+class CreateCVStep(CreateStep):
+    text = "<b>Photo received</b> \n\nWhere next?"
+
+    def get_keyboard(self):
         keyboard = types.InlineKeyboardMarkup()
         keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: CreateCV'))
         keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddName'))
         return keyboard
 
 
-class AddName(CreateStep):
+class AddName(BaseStateData):
     text = '<b>Next step</b> \n\nEnter your name'
-    text_2 = '<b>Name received</b> \n\nWhere next?'
 
     def save_text(self, message):
         text_by_user = message.text
         data_for_cv[self.chat_id]['name'] = text_by_user.capitalize()
 
-    def get_keyboard_new(self):
+    def return_step(self):
+        return AddNameStep
+
+
+class AddNameStep(CreateStep):
+    text = '<b>Name received</b> \n\nWhere next?'
+
+    def get_keyboard(self):
         keyboard = types.InlineKeyboardMarkup()
         keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddName'))
         keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddSurname'))
         return keyboard
 
 
-class AddSurname(CreateStep):
+class AddSurname(BaseStateData):
     text = '<b>Next step</b> \n\nEnter your surname'
-    text_2 = '<b>Surname received</b> \n\nWhere next?'
 
     def save_text(self, message):
         text_by_user = message.text
         data_for_cv[self.chat_id]['surname'] = text_by_user.capitalize()
 
-    def get_keyboard_new(self):
+    def return_step(self):
+        return AddSurnameStep
+
+
+class AddSurnameStep(CreateStep):
+    text = '<b>Surname received</b> \n\nWhere next?'
+
+    def get_keyboard(self):
         keyboard = types.InlineKeyboardMarkup()
         keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddSurname'))
         keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddEmail'))
         return keyboard
 
 
-class AddEmail(CreateStep):
+class AddEmail(BaseStateData):
     text = '<b>Next step</b> \n\nEnter your email'
-    text_2 = '<b>Email received</b> \n\nWhere next?'
 
     def save_text(self, message):
         text_by_user = message.text
         data_for_cv[self.chat_id]['email'] = text_by_user
 
-    def get_keyboard_new(self):
+    def return_step(self):
+        return AddEmailStep
+
+
+class AddEmailStep(CreateStep):
+    text = '<b>Email received</b> \n\nWhere next?'
+
+    def get_keyboard(self):
         keyboard = types.InlineKeyboardMarkup()
         keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddSurname'))
         keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddMobNumber'))
         return keyboard
 
 
-class AddMobNumber(CreateStep):
+class AddMobNumber(BaseStateData):
     text = '<b>Next step</b> \n\nEnter your mobile number'
-    text_2 = '<b>Number received</b> \n\nWhere next?'
 
     def save_text(self, message):
         text_by_user = message.text
         data_for_cv[self.chat_id]['number'] = text_by_user
         print(data_for_cv)
 
-    def get_keyboard_new(self):
+    def return_step(self):
+        return AddMobNumberStep
+
+
+class AddMobNumberStep(CreateStep):
+    text = '<b>Number received</b> \n\nWhere next?'
+
+    def get_keyboard(self):
         keyboard = types.InlineKeyboardMarkup()
         keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddSurname'))
         keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddLinkedIn'))

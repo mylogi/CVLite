@@ -23,6 +23,8 @@ def send_welcome(message: telebot.types.Message):
     greetings = Hello(bot, message.chat.id)
     greetings.display()
     clients[message.chat.id] = Hello
+    # print(message.chat.id)
+    # print(clients[message.chat.id])
 
 
 @bot.callback_query_handler(func=lambda message: True)
@@ -75,10 +77,11 @@ def save_jpg(state, message, chat_id):
     if state == CreateCV:
         new_state_variable = CreateCV(bot, chat_id)
         new_state_variable.save_jpg(message)
-        new_state_variable.display_new()
+        returned_step(new_state_variable, chat_id)
     else:
         bot.send_message(chat_id, "<b>Now it's useless.</b>", parse_mode='HTML')
-        display(chat_id)
+
+    display(chat_id)
 
 
 def choice_text_processing(chat_id, message):
@@ -88,7 +91,13 @@ def choice_text_processing(chat_id, message):
 def text_processing(state, message, chat_id):
     new_state_variable = state(bot, chat_id)
     new_state_variable.save_text(message)
-    new_state_variable.display_new()
+    returned_step(new_state_variable, chat_id)
+    display(chat_id)
+
+
+def returned_step(state, chat_id):
+    returned_state_step = state.return_step()
+    clients[chat_id] = returned_state_step
 
 
 if __name__ == '__main__':
