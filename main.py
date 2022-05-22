@@ -5,17 +5,16 @@ import telebot
 from dotenv import load_dotenv
 
 from states.base import BaseState
-from states.hello import Hello, FirstTemplate, SecondTemplate, CreateCV, AddName, AddSurname, AddMobNumber, AddEmail
+from states.hello import Hello, FirstTemplate, SecondTemplate, CreateCV, AddName, AddSurname, AddMobNumber, AddEmail, \
+    AddLinkedIn, English, Ukrainian
 
 load_dotenv()
 
 bot = telebot.TeleBot(os.getenv('TELEGRAM_SECRET'))
 clients: dict = {}
 current_template: dict = {}
-direct_list: list = [AddName, AddSurname, AddEmail, AddMobNumber]
-
-
-# data_for_cv: dict = {}
+text_direct_tuple: tuple = (AddName, AddSurname, AddEmail, AddMobNumber, AddLinkedIn)
+query_direct_tuple: tuple = (English, Ukrainian)
 
 
 @bot.message_handler(commands=['start', 'help'])
@@ -23,11 +22,9 @@ def send_welcome(message: telebot.types.Message):
     greetings = Hello(bot, message.chat.id)
     greetings.display()
     clients[message.chat.id] = Hello
-    # print(message.chat.id)
-    # print(clients[message.chat.id])
 
 
-@bot.callback_query_handler(func=lambda message: True)
+@bot.callback_query_handler(func=lambda message: clients[message.from_user.id] not in query_direct_tuple)
 def process_call_back(message):
     chat_id = message.from_user.id
     new_state_class = get_state(chat_id).process_call_back(message)
@@ -36,7 +33,13 @@ def process_call_back(message):
     display(chat_id)
 
 
-@bot.message_handler(func=lambda message: clients[message.chat.id] not in direct_list)
+@bot.callback_query_handler(func=lambda message: clients[message.from_user.id] in query_direct_tuple)
+def special_call_back(message):
+    chat_id = message.from_user.id
+    lang_processing(clients[chat_id], message, chat_id)
+
+
+@bot.message_handler(func=lambda message: clients[message.chat.id] not in text_direct_tuple)
 def echo_all(message: telebot.types.Message):
     chat_id = message.chat.id
     new_state_class = get_state(chat_id).process_text_message(message)
@@ -44,7 +47,7 @@ def echo_all(message: telebot.types.Message):
     display(chat_id)
 
 
-@bot.message_handler(func=lambda message: clients[message.chat.id] in direct_list)
+@bot.message_handler(func=lambda message: clients[message.chat.id] in text_direct_tuple)
 def text_form(message: telebot.types.Message):
     chat_id = message.chat.id
     choice_text_processing(chat_id, message)
@@ -91,6 +94,13 @@ def choice_text_processing(chat_id, message):
 def text_processing(state, message, chat_id):
     new_state_variable = state(bot, chat_id)
     new_state_variable.save_text(message)
+    returned_step(new_state_variable, chat_id)
+    display(chat_id)
+
+
+def lang_processing(state, message, chat_id):
+    new_state_variable = state(bot, chat_id)
+    new_state_variable.save_lang_level(message)
     returned_step(new_state_variable, chat_id)
     display(chat_id)
 

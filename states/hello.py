@@ -31,6 +31,14 @@ class BaseStateData(BaseState):
                 return AddEmail
             if message.data == 'next state: AddMobNumber':
                 return AddMobNumber
+            if message.data == 'next state: AddLinkedIn':
+                return AddLinkedIn
+            if message.data == 'next state: LanguageSkills':
+                return LanguageSkills
+            if message.data == 'next state: English':
+                return English
+            if message.data == 'next state: Ukrainian':
+                return Ukrainian
         return self.__class__
 
     def return_step(self):
@@ -65,6 +73,43 @@ class CreateStep(BaseStateData):
         keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: CreateCV'))
         keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddName'))
         return keyboard
+
+
+class Language(BaseStateData):
+    name = ''
+
+    def get_keyboard(self):
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(
+            types.InlineKeyboardButton(text='Elementary (A1)', callback_data='next state: Elementary'),
+            types.InlineKeyboardButton(text='Pre-Intermediate (A2)', callback_data='next state: PreIntermediate')
+        )
+        keyboard.add(
+            types.InlineKeyboardButton(text='Intermediate (B1)', callback_data='next state: Intermediate'),
+            types.InlineKeyboardButton(text='Upper-Intermediate (B2)', callback_data='next state: UpperIntermediate')
+        )
+        keyboard.add(
+            types.InlineKeyboardButton(text='Advanced (C1)', callback_data='next state: Advanced'),
+            types.InlineKeyboardButton(text='Proficiency (C2)', callback_data='next state: Proficiency')
+        )
+        keyboard.add(types.InlineKeyboardButton(text='Native', callback_data='next state: Native'))
+        return keyboard
+
+    def save_lang_level(self, message: types.CallbackQuery):
+        if message.data == 'next state: Elementary':
+            data_for_cv[self.chat_id][self.name] = 'Elementary (A1)'
+        elif message.data == 'next state: PreIntermediate':
+            data_for_cv[self.chat_id][self.name] = 'Pre-Intermediate (A2)'
+        elif message.data == 'next state: Intermediate':
+            data_for_cv[self.chat_id][self.name] = 'Intermediate (B1)'
+        elif message.data == 'next state: UpperIntermediate':
+            data_for_cv[self.chat_id][self.name] = 'Upper-Intermediate (B2)'
+        elif message.data == 'next state: Advanced':
+            data_for_cv[self.chat_id][self.name] = 'Advanced (C1)'
+        elif message.data == 'next state: Proficiency':
+            data_for_cv[self.chat_id][self.name] = 'Proficiency (C2)'
+        elif message.data == 'next state: Native':
+            data_for_cv[self.chat_id][self.name] = 'Native'
 
 
 class Hello(BaseStateData):
@@ -242,7 +287,6 @@ class AddMobNumber(BaseStateData):
     def save_text(self, message):
         text_by_user = message.text
         data_for_cv[self.chat_id]['number'] = text_by_user
-        print(data_for_cv)
 
     def return_step(self):
         return AddMobNumberStep
@@ -253,48 +297,86 @@ class AddMobNumberStep(CreateStep):
 
     def get_keyboard(self):
         keyboard = types.InlineKeyboardMarkup()
-        keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddSurname'))
+        keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddMobNumber'))
         keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddLinkedIn'))
         return keyboard
 
 
-# class OptimizePhoto(BaseStateData):
-#     text = "Photo optimization options"
-#
-#     def get_keyboard(self):
-#         keyboard = types.InlineKeyboardMarkup()
-#         keyboard.add(types.InlineKeyboardButton(text='Auto optimize', callback_data='next state: AutoOptimize'))
-#         keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: TryAgain'))
-#         return keyboard
-#
-#     def process_call_back(self, message: types.CallbackQuery):
-#         if message.data:
-#             if message.data == 'next state: AutoOptimize':
-#                 return True
-#             if message.data == 'next state: TryAgain':
-#                 return CreateCV
-#         return OptimizePhoto
+class AddLinkedIn(BaseStateData):
+    text = '<b>Next step</b> \n\nEnter your LinkedIn url'
+
+    def save_text(self, message):
+        text_by_user = message.text
+        data_for_cv[self.chat_id]['LinkedInUrl'] = text_by_user
+
+    def return_step(self):
+        return AddLinkedInStep
 
 
-class ActionState(BaseState):
-    text = 'Sale example: 1 - New Year, 2 - More minutes, 3 - Soon return'
-
-    def process_text_message(self, message: types.Message):
-        if message.text in ('1', '2', '3'):
-            return ActionAppliedState
-        self.send_warning('Press 1, 2 or 3!')
-        return ActionState
-
-
-class ActionAppliedState(BaseState):
-    text = 'Sorry mistake with processing'
+class AddLinkedInStep(CreateStep):
+    text = '<b>LinkedIn url received</b> \n\nWhere next?'
 
     def get_keyboard(self):
         keyboard = types.InlineKeyboardMarkup()
-        keyboard.add(types.InlineKeyboardButton(text='Home', callback_data='next state: Hello'))
+        keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddLinkedIn'))
+        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: LanguageSkills'))
         return keyboard
 
-    def process_call_back(self, message: types.CallbackQuery):
-        if message.data and message.data == 'next state: Hello':
-            return Hello
-        return ActionAppliedState
+
+class LanguageSkills(BaseStateData):
+    text = '<b>Language skills</b> \n\nClick on the language you speak'
+
+    def get_keyboard(self):
+        print(data_for_cv)
+        keyboard = types.InlineKeyboardMarkup()
+        try:
+            if data_for_cv[self.chat_id]['English']:
+                keyboard.add(types.InlineKeyboardButton(text=f'English: {data_for_cv[self.chat_id]["English"]}',
+                                                        callback_data='next state: English'))
+        except KeyError:
+            keyboard.add(types.InlineKeyboardButton(text='English', callback_data='next state: English'))
+        try:
+            if data_for_cv[self.chat_id]['Ukrainian']:
+                keyboard.add(types.InlineKeyboardButton(text=f'Ukrainian: {data_for_cv[self.chat_id]["Ukrainian"]}',
+                                                        callback_data='next state: Ukrainian'))
+        except KeyError:
+            keyboard.add(types.InlineKeyboardButton(text='Ukrainian', callback_data='next state: Ukrainian'))
+        return keyboard
+
+
+class English(Language):
+    text = '<b>English</b> \n\nWhat is your skill level?'
+    name = 'English'
+
+    def return_step(self):
+        return EnglishStep
+
+
+class EnglishStep(CreateStep):
+    text = '<b>English level added</b> \n\nWhere next?'
+
+    def get_keyboard(self):
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: English'))
+        keyboard.add(types.InlineKeyboardButton(text='Languages', callback_data='next state: LanguageSkills'))
+        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: LanguageSkills'))
+        return keyboard
+
+
+class Ukrainian(Language):
+    text = '<b>Ukrainian</b> \n\nWhat is your skill level?'
+    name = 'Ukrainian'
+
+    def return_step(self):
+        return UkrainianStep
+
+
+class UkrainianStep(CreateStep):
+    text = '<b>English level added</b> \n\nWhere next?'
+
+    def get_keyboard(self):
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: Ukrainian'))
+        keyboard.add(types.InlineKeyboardButton(text='Languages', callback_data='next state: LanguageSkills'))
+        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: LanguageSkills'))
+        return keyboard
