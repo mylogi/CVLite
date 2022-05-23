@@ -3,6 +3,7 @@ from telebot import types
 from states.base import BaseState
 
 data_for_cv: dict = {}
+data_number_soft = []
 
 
 class BaseStateData(BaseState):
@@ -39,6 +40,16 @@ class BaseStateData(BaseState):
                 return English
             if message.data == 'next state: Ukrainian':
                 return Ukrainian
+            if message.data == 'next state: SoftSkills':
+                return SoftSkills
+            if message.data == 'next state: Collaboration':
+                return Collaboration
+            if message.data == 'next state: TimeManagement':
+                return TimeManagement
+            if message.data == 'next state: Feedback':
+                return Feedback
+            if message.data == 'next state: Analysis':
+                return Analysis
         return self.__class__
 
     def return_step(self):
@@ -76,7 +87,7 @@ class CreateStep(BaseStateData):
 
 
 class Language(BaseStateData):
-    name = ''
+    name = ""
 
     def get_keyboard(self):
         keyboard = types.InlineKeyboardMarkup()
@@ -95,7 +106,7 @@ class Language(BaseStateData):
         keyboard.add(types.InlineKeyboardButton(text='Native', callback_data='next state: Native'))
         return keyboard
 
-    def save_lang_level(self, message: types.CallbackQuery):
+    def save_skill(self, message: types.CallbackQuery):
         if message.data == 'next state: Elementary':
             data_for_cv[self.chat_id][self.name] = 'Elementary (A1)'
         elif message.data == 'next state: PreIntermediate':
@@ -110,6 +121,22 @@ class Language(BaseStateData):
             data_for_cv[self.chat_id][self.name] = 'Proficiency (C2)'
         elif message.data == 'next state: Native':
             data_for_cv[self.chat_id][self.name] = 'Native'
+
+
+class SoftSkill(BaseStateData):
+    name = ""
+    text_for_dict: str = ""
+
+    def get_keyboard(self):
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(types.InlineKeyboardButton(text='Add', callback_data='next state: AddSoftSkill'))
+        keyboard.add(types.InlineKeyboardButton(text='Soft Skills', callback_data='next state: SoftSkills'))
+        return keyboard
+
+    def save_skill(self, message):
+        if message.data == 'next state: AddSoftSkill':
+            data_for_cv[self.chat_id][self.name] = self.text_for_dict
+            data_number_soft.append(1)
 
 
 class Hello(BaseStateData):
@@ -337,8 +364,9 @@ class LanguageSkills(BaseStateData):
             keyboard.add(types.InlineKeyboardButton(text='English', callback_data='next state: English'))
         try:
             if data_for_cv[self.chat_id]['Ukrainian']:
-                keyboard.add(types.InlineKeyboardButton(text=f'Ukrainian: {data_for_cv[self.chat_id]["Ukrainian"]}',
-                                                        callback_data='next state: Ukrainian'))
+                keyboard.add(
+                    types.InlineKeyboardButton(text=f'Ukrainian: {data_for_cv[self.chat_id]["Ukrainian"]}',
+                                               callback_data='next state: Ukrainian'))
         except KeyError:
             keyboard.add(types.InlineKeyboardButton(text='Ukrainian', callback_data='next state: Ukrainian'))
         return keyboard
@@ -359,7 +387,7 @@ class EnglishStep(CreateStep):
         keyboard = types.InlineKeyboardMarkup()
         keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: English'))
         keyboard.add(types.InlineKeyboardButton(text='Languages', callback_data='next state: LanguageSkills'))
-        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: LanguageSkills'))
+        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: SoftSkills'))
         return keyboard
 
 
@@ -378,5 +406,78 @@ class UkrainianStep(CreateStep):
         keyboard = types.InlineKeyboardMarkup()
         keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: Ukrainian'))
         keyboard.add(types.InlineKeyboardButton(text='Languages', callback_data='next state: LanguageSkills'))
-        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: LanguageSkills'))
+        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: SoftSkills'))
         return keyboard
+
+
+class SoftSkills(BaseStateData):
+    text = "<b>Soft Skills</b> \n\nChoose 3 skills that are right for you!"
+
+    def get_keyboard(self):
+        keyboard = types.InlineKeyboardMarkup()
+        if len(data_number_soft) == 3:
+            keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: SoftSkills'))
+        else:
+            try:
+                if data_for_cv[self.chat_id]['Collaboration']:
+                    keyboard.add(types.InlineKeyboardButton(text='Collaboration: Selected',
+                                                            callback_data='next state: Collaboration'))
+            except KeyError:
+                keyboard.add(
+                    types.InlineKeyboardButton(text='Collaboration', callback_data='next state: Collaboration'))
+            try:
+                if data_for_cv[self.chat_id]['TimeManagement']:
+                    keyboard.add(types.InlineKeyboardButton(text='Time management: Selected',
+                                                            callback_data='next state: Time management'))
+            except KeyError:
+                keyboard.add(
+                    types.InlineKeyboardButton(text='Time management', callback_data='next state: TimeManagement'))
+            try:
+                if data_for_cv[self.chat_id]['Feedback']:
+                    keyboard.add(types.InlineKeyboardButton(text='Feedback: Selected',
+                                                            callback_data='next state: Feedback'))
+            except KeyError:
+                keyboard.add(types.InlineKeyboardButton(text='Feedback', callback_data='next state: Feedback'))
+            try:
+                if data_for_cv[self.chat_id]['Analysis']:
+                    keyboard.add(types.InlineKeyboardButton(text='Analysis: Selected',
+                                                            callback_data='next state: Analysis'))
+            except KeyError:
+                keyboard.add(types.InlineKeyboardButton(text='Analysis', callback_data='next state: Analysis'))
+        return keyboard
+
+
+class Collaboration(SoftSkill):
+    text = "<b>Collaboration</b> \n\nWhat will you choose?"
+    name = "Collaboration"
+    text_for_dict = "Collaboration - text"
+
+    def return_step(self):
+        return SoftSkills
+
+
+class TimeManagement(SoftSkill):
+    text = "<b>Time Management</b> \n\nWhat will you choose?"
+    name = "TimeManagement"
+    text_for_dict = "Time Management - text"
+
+    def return_step(self):
+        return SoftSkills
+
+
+class Feedback(SoftSkill):
+    text = "<b>Feedback</b> \n\nWhat will you choose?"
+    name = "Feedback"
+    text_for_dict = "Feedback - text"
+
+    def return_step(self):
+        return SoftSkills
+
+
+class Analysis(SoftSkill):
+    text = "<b>Analysis</b> \n\nWhat will you choose?"
+    name = "Analysis"
+    text_for_dict = "Analysis - text"
+
+    def return_step(self):
+        return SoftSkills

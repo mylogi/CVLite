@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 from states.base import BaseState
 from states.hello import Hello, FirstTemplate, SecondTemplate, CreateCV, AddName, AddSurname, AddMobNumber, AddEmail, \
-    AddLinkedIn, English, Ukrainian
+    AddLinkedIn, English, Ukrainian, Collaboration, Feedback, TimeManagement, Analysis
 
 load_dotenv()
 
@@ -14,7 +14,7 @@ bot = telebot.TeleBot(os.getenv('TELEGRAM_SECRET'))
 clients: dict = {}
 current_template: dict = {}
 text_direct_tuple: tuple = (AddName, AddSurname, AddEmail, AddMobNumber, AddLinkedIn)
-query_direct_tuple: tuple = (English, Ukrainian)
+query_direct_tuple: tuple = (English, Ukrainian, Collaboration, Feedback, TimeManagement, Analysis)
 
 
 @bot.message_handler(commands=['start', 'help'])
@@ -36,7 +36,7 @@ def process_call_back(message):
 @bot.callback_query_handler(func=lambda message: clients[message.from_user.id] in query_direct_tuple)
 def special_call_back(message):
     chat_id = message.from_user.id
-    lang_processing(clients[chat_id], message, chat_id)
+    query_processing(clients[chat_id], message, chat_id)
 
 
 @bot.message_handler(func=lambda message: clients[message.chat.id] not in text_direct_tuple)
@@ -98,9 +98,9 @@ def text_processing(state, message, chat_id):
     display(chat_id)
 
 
-def lang_processing(state, message, chat_id):
+def query_processing(state, message, chat_id):
     new_state_variable = state(bot, chat_id)
-    new_state_variable.save_lang_level(message)
+    new_state_variable.save_skill(message)
     returned_step(new_state_variable, chat_id)
     display(chat_id)
 
