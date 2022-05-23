@@ -6,7 +6,8 @@ from dotenv import load_dotenv
 
 from states.base import BaseState
 from states.hello import Hello, FirstTemplate, SecondTemplate, CreateCV, AddName, AddSurname, AddMobNumber, AddEmail, \
-    AddLinkedIn, English, Ukrainian, Collaboration, Feedback, TimeManagement, Analysis
+    AddLinkedIn, English, Ukrainian, Collaboration, Feedback, TimeManagement, Analysis, Python, OOP, DataStructures, \
+    Django
 
 load_dotenv()
 
@@ -14,7 +15,18 @@ bot = telebot.TeleBot(os.getenv('TELEGRAM_SECRET'))
 clients: dict = {}
 current_template: dict = {}
 text_direct_tuple: tuple = (AddName, AddSurname, AddEmail, AddMobNumber, AddLinkedIn)
-query_direct_tuple: tuple = (English, Ukrainian, Collaboration, Feedback, TimeManagement, Analysis)
+query_direct_tuple: tuple = (
+    English,
+    Ukrainian,
+    Collaboration,
+    Feedback,
+    TimeManagement,
+    Analysis,
+    Python,
+    OOP,
+    DataStructures,
+    Django
+)
 
 
 @bot.message_handler(commands=['start', 'help'])
