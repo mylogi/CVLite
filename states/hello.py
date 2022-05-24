@@ -77,6 +77,15 @@ class BaseStateData(BaseState):
                 return Experience
             if message.data == 'next state: AddNewJob':
                 return AddNewJob
+            if message.data == 'next state: AddCompanyName':
+                return AddCompanyName
+            if message.data == 'next state: AddCompanyExp':
+                return AddCompanyExp
+            if message.data == 'next state: AddYourPosition':
+                return AddYourPosition
+            if message.data == 'next state: AddAboutYou':
+                return AddAboutYou
+            'next state: AddYourPosition'
         return self.__class__
 
     def return_step(self):
@@ -252,8 +261,8 @@ class AvailableCVTemplates(BaseStateData):
 
     def get_keyboard(self):
         keyboard = types.InlineKeyboardMarkup()
-        keyboard.add(types.InlineKeyboardButton(text='1 template', callback_data='next state: FirstTemplate'))
-        keyboard.add(types.InlineKeyboardButton(text='2 template', callback_data='next state: SecondTemplate'))
+        keyboard.add(types.InlineKeyboardButton(text='1st template', callback_data='next state: FirstTemplate'))
+        keyboard.add(types.InlineKeyboardButton(text='2nd template', callback_data='next state: SecondTemplate'))
         keyboard.add(types.InlineKeyboardButton(text='CVLite', callback_data='next state: CVLite'))
         return keyboard
 
@@ -418,7 +427,7 @@ class AddMobNumberStep(CreateStep):
 
 
 class AddLinkedIn(BaseStateData):
-    text = '<b>Next step</b> \n\nEnter your LinkedIn url'
+    text = '<b>Next step</b> \n\nEnter your LinkedIn url \n\nRequirements: ...'
 
     def save_text(self, message):
         text_by_user = message.text
@@ -434,6 +443,48 @@ class AddLinkedInStep(CreateStep):
     def get_keyboard(self):
         keyboard = types.InlineKeyboardMarkup()
         keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddLinkedIn'))
+        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddYourPosition'))
+        return keyboard
+
+
+class AddYourPosition(BaseStateData):
+    text = '<b>Next step</b> \n\nEnter your position for CV'
+
+    def save_text(self, message):
+        text_by_user = message.text
+        data_for_cv[self.chat_id]['YourPosition'] = text_by_user
+
+    def return_step(self):
+        return AddYourPositionStep
+
+
+class AddYourPositionStep(CreateStep):
+    text = '<b>Your position received</b> \n\nWhere next?'
+
+    def get_keyboard(self):
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddYourPosition'))
+        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddAboutYou'))
+        return keyboard
+
+
+class AddAboutYou(BaseStateData):
+    text = '<b>Next step</b> \n\nEnter "About You": \n\nRequirements: ...'
+
+    def save_text(self, message):
+        text_by_user = message.text
+        data_for_cv[self.chat_id]['AboutYou'] = text_by_user
+
+    def return_step(self):
+        return AddAboutYouStep
+
+
+class AddAboutYouStep(CreateStep):
+    text = '<b>"About you" received</b> \n\nWhere next?'
+
+    def get_keyboard(self):
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddAboutYou'))
         keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: LanguageSkills'))
         return keyboard
 
@@ -501,12 +552,6 @@ class SoftSkills(BaseStateData):
     text = "<b>Soft Skills</b> \n\nChoose 3 skills that are right for you!"
 
     def get_keyboard(self):
-        print()
-        print(data_for_cv)
-        print(data_for_cv_lang)
-        print(data_for_cv_soft)
-        print(data_for_cv_hard)
-        print()
         keyboard = types.InlineKeyboardMarkup()
         if len(data_number_soft[self.chat_id]) == 3:
             keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: HardSkills'))
@@ -596,12 +641,6 @@ class HardSkills(BaseStateData):
     text = "<b>Hard Skills</b> \n\nChoose 3 skills that are right for you!"
 
     def get_keyboard(self):
-        # print()
-        # print(data_for_cv)
-        # print(data_for_cv_lang)
-        # print(data_for_cv_soft)
-        # print(data_for_cv_hard)
-        # print()
         keyboard = types.InlineKeyboardMarkup()
         if len(data_number_hard[self.chat_id]) == 3:
             keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: Experience'))
@@ -692,13 +731,21 @@ class Experience(BaseStateData):
     text = "<b>Experience</b> \n\nAdd relevant work experience (maximum three jobs)."
 
     def get_keyboard(self):
+        print()
+        print(data_for_cv)
+        print(data_for_cv_lang)
+        print(data_for_cv_soft)
+        print(data_for_cv_hard)
+        print(data_for_cv_exp)
+        print()
         keyboard = types.InlineKeyboardMarkup()
         if len(data_number_exp[self.chat_id]) == 3:
             keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: Experience'))
-        keyboard.add(types.InlineKeyboardButton(
-            text=f'Add job {self.number_jobs}',
-            callback_data='next state: AddNewJob'))
-        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: Experience'))
+        else:
+            keyboard.add(types.InlineKeyboardButton(
+                text=f'Add job (You added: {len(data_number_exp[self.chat_id])})',
+                callback_data='next state: AddNewJob'))
+            keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddNewJob'))
         return keyboard
 
     def display(self):
@@ -717,18 +764,18 @@ class Experience(BaseStateData):
         except KeyError:
             self.for_display_skill(data_number_exp)
 
-    def number_jobs(self):
-        if len(data_number_exp[self.chat_id]) > 0:
-            return len(data_number_exp[self.chat_id])
-        return ""
-
 
 class AddNewJob(BaseStateData):
     text = "<b>Add relevant job</b> \n\nAdd your position in the company"
 
     def save_text(self, message):
         text_by_user = message.text
-        data_for_cv_exp[self.chat_id] = [text_by_user]
+        data_number_exp[self.chat_id].append(1)
+        try:
+            if data_for_cv_exp[self.chat_id]:
+                data_for_cv_exp[self.chat_id].append(text_by_user)
+        except KeyError:
+            data_for_cv_exp[self.chat_id] = [text_by_user]
 
     def return_step(self):
         return AddNewJobStep
@@ -740,5 +787,47 @@ class AddNewJobStep(CreateStep):
     def get_keyboard(self):
         keyboard = types.InlineKeyboardMarkup()
         keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddNewJob'))
-        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddNewJob'))
+        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddCompanyName'))
+        return keyboard
+
+
+class AddCompanyName(BaseStateData):
+    text = "<b>Add company name</b> \n\nAdd company name for this position"
+
+    def save_text(self, message):
+        text_by_user = message.text
+        data_for_cv_exp[self.chat_id].append(text_by_user)
+
+    def return_step(self):
+        return AddCompanyNameStep
+
+
+class AddCompanyNameStep(CreateStep):
+    text = '<b>Your company name received</b> \n\nWhere next?'
+
+    def get_keyboard(self):
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddCompanyName'))
+        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddCompanyExp'))
+        return keyboard
+
+
+class AddCompanyExp(BaseStateData):
+    text = "<b>Add experience</b> \n\nAdd your experience on this job"
+
+    def save_text(self, message):
+        text_by_user = message.text
+        data_for_cv_exp[self.chat_id].append(text_by_user)
+
+    def return_step(self):
+        return AddCompanyExpStep
+
+
+class AddCompanyExpStep(CreateStep):
+    text = '<b>Your experience received</b> \n\nWhere next?'
+
+    def get_keyboard(self):
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddCompanyName'))
+        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: Experience'))
         return keyboard

@@ -6,8 +6,9 @@ from dotenv import load_dotenv
 
 from states.base import BaseState
 from states.hello import Hello, FirstTemplate, SecondTemplate, CreateCV, AddName, AddSurname, AddMobNumber, AddEmail, \
-    AddLinkedIn, English, Ukrainian, Collaboration, Feedback, TimeManagement, Analysis, Python, OOP, DataStructures, \
-    Django, AddNewJob
+    AddLinkedIn, AddYourPosition, AddAboutYou, English, Ukrainian, Collaboration, Feedback, TimeManagement, Analysis, \
+    Python, OOP, DataStructures, \
+    Django, AddNewJob, AddCompanyName, AddCompanyExp
 
 load_dotenv()
 
@@ -17,7 +18,18 @@ clients: dict = {}
 
 current_template: dict = {}
 
-text_direct_tuple: tuple = (AddName, AddSurname, AddEmail, AddMobNumber, AddLinkedIn, AddNewJob)
+text_direct_tuple: tuple = (
+    AddName,
+    AddSurname,
+    AddEmail,
+    AddMobNumber,
+    AddLinkedIn,
+    AddYourPosition,
+    AddAboutYou,
+    AddNewJob,
+    AddCompanyName,
+    AddCompanyExp
+)
 
 query_direct_tuple: tuple = (
     English,
