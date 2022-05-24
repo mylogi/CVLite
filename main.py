@@ -12,9 +12,15 @@ from states.hello import Hello, FirstTemplate, SecondTemplate, CreateCV, AddName
 load_dotenv()
 
 bot = telebot.TeleBot(os.getenv('TELEGRAM_SECRET'))
+
 clients: dict = {}
+
+# MESSAGES: list = []
+
 current_template: dict = {}
+
 text_direct_tuple: tuple = (AddName, AddSurname, AddEmail, AddMobNumber, AddLinkedIn)
+
 query_direct_tuple: tuple = (
     English,
     Ukrainian,

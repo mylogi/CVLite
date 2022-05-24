@@ -1,6 +1,6 @@
 from telebot import types
 
-from states.base import BaseState
+from states.base import BaseState, MESSAGES
 
 data_for_cv: dict = {}
 data_for_cv_lang: dict = {}
@@ -78,6 +78,17 @@ class BaseStateData(BaseState):
             data_dictionary[self.chat_id] = {}
             data_dictionary[self.chat_id][self.name] = self.text_for_dict
             number_dictionary[self.chat_id].append(1)
+
+    def for_display_skill(self, number_dictionary: dict):
+        number_dictionary[self.chat_id] = []
+        self.bot.delete_message(self.chat_id, MESSAGES[self.chat_id], timeout=0)
+        message_from_bot = self.bot.send_message(
+            self.chat_id,
+            self.text,
+            reply_markup=self.get_keyboard(),
+            parse_mode='HTML'
+        )
+        MESSAGES[self.chat_id] = message_from_bot.id
 
 
 class Template(BaseStateData):
@@ -466,21 +477,21 @@ class SoftSkills(BaseStateData):
             try:
                 if data_for_cv_soft[self.chat_id]['Collaboration']:
                     keyboard.add(types.InlineKeyboardButton(text='Collaboration: Selected',
-                                                            callback_data='next state: Collaboration'))
+                                                            callback_data='next state: SoftSkills'))
             except KeyError:
                 keyboard.add(
                     types.InlineKeyboardButton(text='Collaboration', callback_data='next state: Collaboration'))
             try:
                 if data_for_cv_soft[self.chat_id]['TimeManagement']:
                     keyboard.add(types.InlineKeyboardButton(text='Time management: Selected',
-                                                            callback_data='next state: Time management'))
+                                                            callback_data='next state: SoftSkills'))
             except KeyError:
                 keyboard.add(
                     types.InlineKeyboardButton(text='Time management', callback_data='next state: TimeManagement'))
             try:
                 if data_for_cv_soft[self.chat_id]['Feedback']:
                     keyboard.add(types.InlineKeyboardButton(text='Feedback: Selected',
-                                                            callback_data='next state: Feedback'))
+                                                            callback_data='next state: SoftSkills'))
             except KeyError:
                 keyboard.add(types.InlineKeyboardButton(text='Feedback', callback_data='next state: Feedback'))
             try:
@@ -496,10 +507,16 @@ class SoftSkills(BaseStateData):
             if data_number_soft[self.chat_id]:
                 if len(data_number_soft[self.chat_id]) == 3:
                     self.text = "<b>Soft Skills</b> \n\nYou have chosen the available number of Soft skills."
-                self.bot.send_message(self.chat_id, self.text, reply_markup=self.get_keyboard(), parse_mode='HTML')
+                self.bot.delete_message(self.chat_id, MESSAGES[self.chat_id], timeout=0)
+                message_from_bot = self.bot.send_message(
+                    self.chat_id,
+                    self.text,
+                    reply_markup=self.get_keyboard(),
+                    parse_mode='HTML'
+                )
+                MESSAGES[self.chat_id] = message_from_bot.id
         except KeyError:
-            data_number_soft[self.chat_id] = []
-            self.bot.send_message(self.chat_id, self.text, reply_markup=self.get_keyboard(), parse_mode='HTML')
+            self.for_display_skill(data_number_soft)
 
 
 class Collaboration(SoftSkill):
@@ -542,7 +559,12 @@ class HardSkills(BaseStateData):
     text = "<b>Hard Skills</b> \n\nChoose 3 skills that are right for you!"
 
     def get_keyboard(self):
-        print(data_for_cv)
+        # print()
+        # print(data_for_cv)
+        # print(data_for_cv_lang)
+        # print(data_for_cv_soft)
+        # print(data_for_cv_hard)
+        # print()
         keyboard = types.InlineKeyboardMarkup()
         if len(data_number_hard[self.chat_id]) == 3:
             keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: HardSkills'))
@@ -550,21 +572,21 @@ class HardSkills(BaseStateData):
             try:
                 if data_for_cv_hard[self.chat_id]['Python']:
                     keyboard.add(types.InlineKeyboardButton(text='Python: Selected',
-                                                            callback_data='next state: Python'))
+                                                            callback_data='next state: HardSkills'))
             except KeyError:
                 keyboard.add(
                     types.InlineKeyboardButton(text='Python', callback_data='next state: Python'))
             try:
                 if data_for_cv_hard[self.chat_id]['Django']:
                     keyboard.add(types.InlineKeyboardButton(text='Django: Selected',
-                                                            callback_data='next state: Django'))
+                                                            callback_data='next state: HardSkills'))
             except KeyError:
                 keyboard.add(
                     types.InlineKeyboardButton(text='Django', callback_data='next state: Django'))
             try:
                 if data_for_cv_hard[self.chat_id]['OOP']:
                     keyboard.add(types.InlineKeyboardButton(text='OOP: Selected',
-                                                            callback_data='next state: OOP'))
+                                                            callback_data='next state: HardSkills'))
             except KeyError:
                 keyboard.add(types.InlineKeyboardButton(text='OOP', callback_data='next state: OOP'))
             try:
@@ -581,10 +603,16 @@ class HardSkills(BaseStateData):
             if data_number_hard[self.chat_id]:
                 if len(data_number_hard[self.chat_id]) == 3:
                     self.text = "<b>Hard Skills</b> \n\nYou have chosen the available number of Hard skills."
-                self.bot.send_message(self.chat_id, self.text, reply_markup=self.get_keyboard(), parse_mode='HTML')
+                self.bot.delete_message(self.chat_id, MESSAGES[self.chat_id], timeout=0)
+                message_from_bot = self.bot.send_message(
+                    self.chat_id,
+                    self.text,
+                    reply_markup=self.get_keyboard(),
+                    parse_mode='HTML'
+                )
+                MESSAGES[self.chat_id] = message_from_bot.id
         except KeyError:
-            data_number_hard[self.chat_id] = []
-            self.bot.send_message(self.chat_id, self.text, reply_markup=self.get_keyboard(), parse_mode='HTML')
+            self.for_display_skill(data_number_hard)
 
 
 class Python(HardSkill):

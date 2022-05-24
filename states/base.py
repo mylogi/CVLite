@@ -1,5 +1,7 @@
 from telebot import types
 
+MESSAGES: dict = {}
+
 
 class BaseState:
     text = ""
@@ -9,7 +11,16 @@ class BaseState:
         self.chat_id = chat_id
 
     def display(self):
-        self.bot.send_message(self.chat_id, self.text, reply_markup=self.get_keyboard(), parse_mode='HTML')
+        try:
+            if MESSAGES[self.chat_id]:
+                self.bot.delete_message(self.chat_id, MESSAGES[self.chat_id], timeout=0)
+                message_from_bot = self.bot.send_message(self.chat_id, self.text, reply_markup=self.get_keyboard(),
+                                                         parse_mode='HTML')
+                MESSAGES[self.chat_id] = message_from_bot.id
+        except KeyError:
+            message_from_bot = self.bot.send_message(self.chat_id, self.text, reply_markup=self.get_keyboard(),
+                                                     parse_mode='HTML')
+            MESSAGES[self.chat_id] = message_from_bot.id
 
     def send_warning(self, text):
         self.bot.send_message(self.chat_id, text)
