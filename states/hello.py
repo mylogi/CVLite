@@ -3,11 +3,20 @@ from telebot import types
 from states.base import BaseState, MESSAGES
 
 data_for_cv: dict = {}
+
 data_for_cv_lang: dict = {}
+
 data_for_cv_soft: dict = {}
+
 data_for_cv_hard: dict = {}
+
+data_for_cv_exp: dict = {}
+
 data_number_soft: dict = {}
+
 data_number_hard: dict = {}
+
+data_number_exp: dict = {}
 
 
 class BaseStateData(BaseState):
@@ -64,6 +73,10 @@ class BaseStateData(BaseState):
                 return OOP
             if message.data == 'next state: DataStructures':
                 return DataStructures
+            if message.data == 'next state: Experience':
+                return Experience
+            if message.data == 'next state: AddNewJob':
+                return AddNewJob
         return self.__class__
 
     def return_step(self):
@@ -78,6 +91,14 @@ class BaseStateData(BaseState):
             data_dictionary[self.chat_id] = {}
             data_dictionary[self.chat_id][self.name] = self.text_for_dict
             number_dictionary[self.chat_id].append(1)
+
+    def for_remove_skill(self, data_dictionary: dict, number_dictionary: dict):
+        del data_dictionary[self.chat_id][self.name]
+        if len(number_dictionary[self.chat_id]) == 1:
+            del number_dictionary[self.chat_id]
+            del data_dictionary[self.chat_id]
+        else:
+            number_dictionary[self.chat_id].pop()
 
     def for_display_skill(self, number_dictionary: dict):
         number_dictionary[self.chat_id] = []
@@ -172,13 +193,18 @@ class SoftSkill(BaseStateData):
 
     def get_keyboard(self):
         keyboard = types.InlineKeyboardMarkup()
-        keyboard.add(types.InlineKeyboardButton(text='Add', callback_data='next state: AddSoftSkill'))
-        keyboard.add(types.InlineKeyboardButton(text='Soft Skills', callback_data='next state: SoftSkills'))
+        try:
+            if data_for_cv_soft[self.chat_id][self.name]:
+                keyboard.add(types.InlineKeyboardButton(text='Remove', callback_data='next state: RemoveSkill'))
+        except KeyError:
+            keyboard.add(types.InlineKeyboardButton(text='Add', callback_data='next state: AddSoftSkill'))
         return keyboard
 
     def save_skill(self, message):
         if message.data == 'next state: AddSoftSkill':
             self.for_save_skill(data_for_cv_soft, data_number_soft)
+        if message.data == 'next state: RemoveSkill':
+            self.for_remove_skill(data_for_cv_soft, data_number_soft)
 
 
 class HardSkill(BaseStateData):
@@ -187,13 +213,18 @@ class HardSkill(BaseStateData):
 
     def get_keyboard(self):
         keyboard = types.InlineKeyboardMarkup()
-        keyboard.add(types.InlineKeyboardButton(text='Add', callback_data='next state: AddHardSkill'))
-        keyboard.add(types.InlineKeyboardButton(text='Hard Skills', callback_data='next state: HardSkills'))
+        try:
+            if data_for_cv_hard[self.chat_id][self.name]:
+                keyboard.add(types.InlineKeyboardButton(text='Remove', callback_data='next state: RemoveSkill'))
+        except KeyError:
+            keyboard.add(types.InlineKeyboardButton(text='Add', callback_data='next state: AddHardSkill'))
         return keyboard
 
     def save_skill(self, message):
         if message.data == 'next state: AddHardSkill':
             self.for_save_skill(data_for_cv_hard, data_number_hard)
+        if message.data == 'next state: RemoveSkill':
+            self.for_remove_skill(data_for_cv_hard, data_number_hard)
 
 
 class Hello(BaseStateData):
@@ -420,9 +451,9 @@ class LanguageSkills(BaseStateData):
             keyboard.add(types.InlineKeyboardButton(text='English', callback_data='next state: English'))
         try:
             if data_for_cv_lang[self.chat_id]['Ukrainian']:
-                keyboard.add(
-                    types.InlineKeyboardButton(text=f'Ukrainian: {data_for_cv_lang[self.chat_id]["Ukrainian"]}',
-                                               callback_data='next state: Ukrainian'))
+                keyboard.add(types.InlineKeyboardButton(
+                    text=f'Ukrainian: {data_for_cv_lang[self.chat_id]["Ukrainian"]}',
+                    callback_data='next state: Ukrainian'))
         except KeyError:
             keyboard.add(types.InlineKeyboardButton(text='Ukrainian', callback_data='next state: Ukrainian'))
         return keyboard
@@ -470,6 +501,12 @@ class SoftSkills(BaseStateData):
     text = "<b>Soft Skills</b> \n\nChoose 3 skills that are right for you!"
 
     def get_keyboard(self):
+        print()
+        print(data_for_cv)
+        print(data_for_cv_lang)
+        print(data_for_cv_soft)
+        print(data_for_cv_hard)
+        print()
         keyboard = types.InlineKeyboardMarkup()
         if len(data_number_soft[self.chat_id]) == 3:
             keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: HardSkills'))
@@ -477,21 +514,21 @@ class SoftSkills(BaseStateData):
             try:
                 if data_for_cv_soft[self.chat_id]['Collaboration']:
                     keyboard.add(types.InlineKeyboardButton(text='Collaboration: Selected',
-                                                            callback_data='next state: SoftSkills'))
+                                                            callback_data='next state: Collaboration'))
             except KeyError:
                 keyboard.add(
                     types.InlineKeyboardButton(text='Collaboration', callback_data='next state: Collaboration'))
             try:
                 if data_for_cv_soft[self.chat_id]['TimeManagement']:
                     keyboard.add(types.InlineKeyboardButton(text='Time management: Selected',
-                                                            callback_data='next state: SoftSkills'))
+                                                            callback_data='next state: TimeManagement'))
             except KeyError:
                 keyboard.add(
                     types.InlineKeyboardButton(text='Time management', callback_data='next state: TimeManagement'))
             try:
                 if data_for_cv_soft[self.chat_id]['Feedback']:
                     keyboard.add(types.InlineKeyboardButton(text='Feedback: Selected',
-                                                            callback_data='next state: SoftSkills'))
+                                                            callback_data='next state: Feedback'))
             except KeyError:
                 keyboard.add(types.InlineKeyboardButton(text='Feedback', callback_data='next state: Feedback'))
             try:
@@ -567,26 +604,26 @@ class HardSkills(BaseStateData):
         # print()
         keyboard = types.InlineKeyboardMarkup()
         if len(data_number_hard[self.chat_id]) == 3:
-            keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: HardSkills'))
+            keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: Experience'))
         else:
             try:
                 if data_for_cv_hard[self.chat_id]['Python']:
                     keyboard.add(types.InlineKeyboardButton(text='Python: Selected',
-                                                            callback_data='next state: HardSkills'))
+                                                            callback_data='next state: Python'))
             except KeyError:
                 keyboard.add(
                     types.InlineKeyboardButton(text='Python', callback_data='next state: Python'))
             try:
                 if data_for_cv_hard[self.chat_id]['Django']:
                     keyboard.add(types.InlineKeyboardButton(text='Django: Selected',
-                                                            callback_data='next state: HardSkills'))
+                                                            callback_data='next state: Django'))
             except KeyError:
                 keyboard.add(
                     types.InlineKeyboardButton(text='Django', callback_data='next state: Django'))
             try:
                 if data_for_cv_hard[self.chat_id]['OOP']:
                     keyboard.add(types.InlineKeyboardButton(text='OOP: Selected',
-                                                            callback_data='next state: HardSkills'))
+                                                            callback_data='next state: OOP'))
             except KeyError:
                 keyboard.add(types.InlineKeyboardButton(text='OOP', callback_data='next state: OOP'))
             try:
@@ -649,3 +686,59 @@ class DataStructures(HardSkill):
 
     def return_step(self):
         return HardSkills
+
+
+class Experience(BaseStateData):
+    text = "<b>Experience</b> \n\nAdd relevant work experience (maximum three jobs)."
+
+    def get_keyboard(self):
+        keyboard = types.InlineKeyboardMarkup()
+        if len(data_number_exp[self.chat_id]) == 3:
+            keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: Experience'))
+        keyboard.add(types.InlineKeyboardButton(
+            text=f'Add job {self.number_jobs}',
+            callback_data='next state: AddNewJob'))
+        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: Experience'))
+        return keyboard
+
+    def display(self):
+        try:
+            if data_number_exp[self.chat_id]:
+                if len(data_number_exp[self.chat_id]) == 3:
+                    self.text = "<b>Experience</b> \n\nYou have chosen the available number of jobs."
+                self.bot.delete_message(self.chat_id, MESSAGES[self.chat_id], timeout=0)
+                message_from_bot = self.bot.send_message(
+                    self.chat_id,
+                    self.text,
+                    reply_markup=self.get_keyboard(),
+                    parse_mode='HTML'
+                )
+                MESSAGES[self.chat_id] = message_from_bot.id
+        except KeyError:
+            self.for_display_skill(data_number_exp)
+
+    def number_jobs(self):
+        if len(data_number_exp[self.chat_id]) > 0:
+            return len(data_number_exp[self.chat_id])
+        return ""
+
+
+class AddNewJob(BaseStateData):
+    text = "<b>Add relevant job</b> \n\nAdd your position in the company"
+
+    def save_text(self, message):
+        text_by_user = message.text
+        data_for_cv_exp[self.chat_id] = [text_by_user]
+
+    def return_step(self):
+        return AddNewJobStep
+
+
+class AddNewJobStep(CreateStep):
+    text = '<b>Your position received</b> \n\nWhere next?'
+
+    def get_keyboard(self):
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddNewJob'))
+        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddNewJob'))
+        return keyboard
