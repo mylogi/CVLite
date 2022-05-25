@@ -8,7 +8,7 @@ from states.base import BaseState
 from states.hello import Hello, FirstTemplate, SecondTemplate, CreateCV, AddName, AddSurname, AddMobNumber, AddEmail, \
     AddLinkedIn, AddYourPosition, AddAboutYou, English, Ukrainian, Collaboration, Feedback, TimeManagement, Analysis, \
     Python, OOP, DataStructures, \
-    Django, AddNewJob, AddCompanyName, AddCompanyExp
+    Django, AddNewJob, AddCompanyName, AddCompanyExp, CreatePDF
 
 load_dotenv()
 
@@ -41,7 +41,8 @@ query_direct_tuple: tuple = (
     Python,
     OOP,
     DataStructures,
-    Django
+    Django,
+    CreatePDF
 )
 
 
@@ -64,7 +65,13 @@ def process_call_back(message):
 @bot.callback_query_handler(func=lambda message: clients[message.from_user.id] in query_direct_tuple)
 def special_call_back(message):
     chat_id = message.from_user.id
-    query_processing(clients[chat_id], message, chat_id)
+    if clients[message.from_user.id] == CreatePDF:
+        state = CreatePDF(bot, chat_id)
+        state.create_file(message)
+        # state.send_file()
+    else:
+        chat_id = message.from_user.id
+        query_processing(clients[chat_id], message, chat_id)
 
 
 @bot.message_handler(func=lambda message: clients[message.chat.id] not in text_direct_tuple)

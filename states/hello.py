@@ -1,3 +1,5 @@
+import requests
+from fpdf import FPDF
 from telebot import types
 
 from states.base import BaseState, MESSAGES
@@ -85,7 +87,8 @@ class BaseStateData(BaseState):
                 return AddYourPosition
             if message.data == 'next state: AddAboutYou':
                 return AddAboutYou
-            'next state: AddYourPosition'
+            if message.data == 'next state: CreatePDF':
+                return CreatePDF
         return self.__class__
 
     def return_step(self):
@@ -431,7 +434,12 @@ class AddLinkedIn(BaseStateData):
 
     def save_text(self, message):
         text_by_user = message.text
-        data_for_cv[self.chat_id]['LinkedInUrl'] = text_by_user
+        try:
+            response = requests.get(text_by_user)
+            if response.status_code == 200:
+                data_for_cv[self.chat_id]['LinkedInUrl'] = text_by_user
+        except Exception:
+            data_for_cv[self.chat_id]['LinkedInUrl'] = 'non-response'
 
     def return_step(self):
         return AddLinkedInStep
@@ -740,12 +748,12 @@ class Experience(BaseStateData):
         print()
         keyboard = types.InlineKeyboardMarkup()
         if len(data_number_exp[self.chat_id]) == 3:
-            keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: Experience'))
+            keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: CreatePDF'))
         else:
             keyboard.add(types.InlineKeyboardButton(
                 text=f'Add job (You added: {len(data_number_exp[self.chat_id])})',
                 callback_data='next state: AddNewJob'))
-            keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddNewJob'))
+            keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: CreatePDF'))
         return keyboard
 
     def display(self):
@@ -831,3 +839,301 @@ class AddCompanyExpStep(CreateStep):
         keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddCompanyName'))
         keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: Experience'))
         return keyboard
+
+
+class CreatePDF(BaseState):
+    text = "<b>CREATE CV PDF FILE</b>"
+
+    def get_keyboard(self):
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(types.InlineKeyboardButton(text='Create PDF', callback_data='next state: CreatePDF'))
+        return keyboard
+
+    def display(self):
+        self.bot.send_message(
+            self.chat_id, self.text, reply_markup=self.get_keyboard(),
+            parse_mode='HTML')
+
+    def create_file(self, message: types.CallbackQuery):
+        if message.data == 'next state: CreatePDF':
+            pdf = PDF(self.chat_id)
+            # pdf.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
+            # pdf.add_font('DejaVu', 'B', 'DejaVuSansCondensed.ttf', uni=True)
+            pdf.set_title("P PP PP PP PP")
+            pdf.create_cv_template()
+            pdf.output(
+                f"{data_for_cv[self.chat_id]['YourPosition']}_{data_for_cv[self.chat_id]['name']}{data_for_cv[self.chat_id]['surname']}.pdf")
+            self.send_file()
+
+    def send_file(self):
+        self.bot.send_document(
+            self.chat_id,
+            open(
+                f"{data_for_cv[self.chat_id]['YourPosition']}_{data_for_cv[self.chat_id]['name']}{data_for_cv[self.chat_id]['surname']}.pdf",
+                'rb')
+        )
+
+
+class PDF(FPDF):
+    x_pos = 0
+    y_pos = 0
+
+    def __init__(self, chat_id):
+        super().__init__()
+        self.chat_id = chat_id
+
+    def footer(self):
+        self.set_y(-15)
+        self.set_font("DejaVu", "B", 8)
+        self.cell(0, 10, "CVLite", align="C")
+
+    def chapter_title(self):
+        self.set_font("DejaVu", "", 16)
+        # Setting background color
+        width = self.get_string_width(self.title) + 150
+        self.set_y(20)
+        self.set_x(50)
+        # self.set_draw_color(0, 80, 180)
+        self.set_fill_color(241, 234, 226)
+        # Printing chapter name:
+        self.cell(
+            width,
+            12,
+            "",
+            align="C",
+            fill=True,
+        )
+
+    def add_name(self):
+        self.set_font("DejaVu", style='', size=24)
+        self.set_y(24)
+        self.set_x(125)
+        self.cell(
+            w=0,
+            h=6,
+            txt=f"{data_for_cv[self.chat_id]['name'].upper()}",
+            align="l",
+            fill=False,
+        )
+        self.set_y(34)
+        self.set_x(125)
+        self.set_font("DejaVu", style='', size=24)
+        self.cell(
+            w=0,
+            h=6,
+            txt=f"{data_for_cv[self.chat_id]['surname'].upper()}",
+            align="l",
+            fill=False,
+        )
+        self.set_font("DejaVu", size=12)
+
+    def add_cv_position(self):
+        self.set_font("DejaVu", style='', size=14)
+        self.set_y(49)
+        self.set_x(125)
+        self.cell(
+            w=0,
+            h=6,
+            txt=f"{data_for_cv[self.chat_id]['YourPosition'].upper()}",
+            align="l",
+            fill=False,
+        )
+
+    def add_about_you(self):
+        self.set_font("DejaVu", style='', size=12)
+        self.set_y(60)
+        self.set_x(89)
+        self.multi_cell(
+            w=110,
+            h=10,
+            txt=f"{data_for_cv[self.chat_id]['AboutYou']}",
+            align="l",
+        )
+
+    def add_hard_skills(self):
+        self.set_font("DejaVu", style='', size=14)
+        self.set_y(117)
+        self.set_x(125)
+        self.cell(
+            w=0,
+            h=6,
+            txt="HARD SKILLS",
+            align="l",
+            fill=False,
+        )
+
+    def add_hard_skill(self):
+        self.set_font("DejaVu", style='', size=12)
+        self.set_y(127)
+        self.set_x(89)
+        self.multi_cell(
+            w=110,
+            h=10,
+            txt=f"{data_for_cv_hard[self.chat_id]['Python']}",
+            align="l",
+        )
+
+    def add_experience(self):
+        self.set_font("DejaVu", style='', size=14)
+        self.set_y(205)
+        self.set_x(125)
+        self.cell(
+            w=0,
+            h=6,
+            txt="EXPERIENCE",
+            align="l",
+            fill=False,
+        )
+
+    def add_experience_sample(self):
+        self.set_font("DejaVu", style='', size=12)
+        self.set_y(215)
+        self.set_x(89)
+        self.multi_cell(
+            w=110,
+            h=10,
+            txt=f"{data_for_cv_exp[self.chat_id]}",
+            align="l",
+        )
+
+    def add_number(self):
+        self.set_font("DejaVu", style='B', size=12)
+        self.set_y(85)
+        self.set_x(10)
+        self.cell(
+            w=0,
+            h=6,
+            txt="Phone:",
+            align="l",
+            fill=False,
+        )
+        self.set_y(85)
+        self.set_x(26)
+        self.set_font("DejaVu", style='', size=12)
+        self.cell(
+            w=0,
+            h=6,
+            txt=f"{data_for_cv[self.chat_id]['number']}",
+            align="l",
+            fill=False,
+        )
+        self.set_font("helvetica", size=12)
+
+    def add_email(self):
+        self.set_font("DejaVu", style='B', size=12)
+        self.set_y(95)
+        self.set_x(10)
+        self.cell(
+            w=0,
+            h=6,
+            txt="Email:",
+            align="l",
+            fill=False,
+        )
+        self.set_y(95)
+        self.set_x(26)
+        self.set_font("DejaVu", style='', size=12)
+        self.cell(
+            w=0,
+            h=6,
+            txt=f"{data_for_cv[self.chat_id]['email']}",
+            align="l",
+            fill=False,
+        )
+        self.set_font("DejaVu", size=12)
+
+    def add_liked_in_url(self):
+        self.set_font("DejaVu", size=12)
+        self.set_y(105)
+        self.set_x(10)
+        self.cell(
+            w=18,
+            h=6,
+            txt="LinkedIn",
+            align="l",
+            fill=False,
+            link=f"{data_for_cv[self.chat_id]['LinkedInUrl']}",
+            border=1
+        )
+
+    def add_language_skills(self):
+        self.set_font("DejaVu", style='', size=14)
+        self.set_y(120)
+        self.set_x(10)
+        self.cell(
+            w=0,
+            h=6,
+            txt="LANGUAGE SKILLS",
+            align="l",
+            fill=False,
+        )
+
+    def add_languages(self):
+        # self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
+        self.set_font("DejaVu", style='B', size=12)
+        self.set_y(135)
+        self.set_x(10)
+        self.cell(
+            w=0,
+            h=6,
+            txt="English:",
+            align="l",
+            fill=False,
+        )
+        self.set_y(135)
+        self.set_x(30)
+        self.set_font("DejaVu", style='', size=12)
+        self.cell(
+            w=0,
+            h=6,
+            txt=f"{data_for_cv_lang[self.chat_id]['English']}",
+            align="l",
+            fill=False,
+        )
+        self.set_font("DejaVu", size=12)
+
+    def add_soft_skills(self):
+        # self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
+        self.set_font("DejaVu", style='', size=14)
+        self.set_y(160)
+        self.set_x(10)
+        self.cell(
+            w=0,
+            h=6,
+            txt="SOFT SKILLS",
+            align="l",
+            fill=False,
+        )
+
+    def add_soft_skill(self):
+        # self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
+        self.set_font("DejaVu", style='', size=12)
+        self.set_y(175)
+        self.set_x(10)
+        self.multi_cell(
+            w=70,
+            h=10,
+            txt=f"{data_for_cv_soft[self.chat_id]['Collaboration']}",
+            align="l",
+        )
+
+    def create_cv_template(self):
+        self.add_font('DejaVu', 'B', 'DejaVuSansCondensed.ttf', uni=True)
+        self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
+        self.add_page()
+        self.chapter_title()
+        self.add_name()
+        self.add_cv_position()
+        self.add_about_you()
+        self.add_hard_skills()
+        self.add_hard_skill()
+        self.add_experience()
+        self.add_experience_sample()
+        self.add_number()
+        self.add_email()
+        self.add_liked_in_url()
+        self.add_language_skills()
+        self.add_languages()
+        self.add_soft_skills()
+        self.add_soft_skill()
+        self.image('new_avatar_170.png', 10, 10)

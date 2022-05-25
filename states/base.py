@@ -14,12 +14,14 @@ class BaseState:
         try:
             if MESSAGES[self.chat_id]:
                 self.bot.delete_message(self.chat_id, MESSAGES[self.chat_id], timeout=0)
-                message_from_bot = self.bot.send_message(self.chat_id, self.text, reply_markup=self.get_keyboard(),
-                                                         parse_mode='HTML')
+                message_from_bot = self.bot.send_message(
+                    self.chat_id, self.text, reply_markup=self.get_keyboard(),
+                    parse_mode='HTML')
                 MESSAGES[self.chat_id] = message_from_bot.id
         except KeyError:
-            message_from_bot = self.bot.send_message(self.chat_id, self.text, reply_markup=self.get_keyboard(),
-                                                     parse_mode='HTML')
+            message_from_bot = self.bot.send_message(
+                self.chat_id, self.text, reply_markup=self.get_keyboard(),
+                parse_mode='HTML')
             MESSAGES[self.chat_id] = message_from_bot.id
 
     def send_warning(self, text):
