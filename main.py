@@ -8,7 +8,8 @@ from states.base import BaseState
 from states.hello import Hello, FirstTemplate, SecondTemplate, CreateCV, AddName, AddSurname, AddMobNumber, AddEmail, \
     AddLinkedIn, AddYourPosition, AddAboutYou, English, Ukrainian, Collaboration, Feedback, TimeManagement, Analysis, \
     Python, OOP, DataStructures, \
-    Django, AddNewJob, AddCompanyName, AddCompanyExp, CreatePDF
+    Django, AddNewJob1, AddCompanyName1, AddCompanyExp1, AddNewJob2, AddCompanyName2, AddCompanyExp2, AddNewJob3, \
+    AddCompanyName3, AddCompanyExp3, CreatePDF
 
 load_dotenv()
 
@@ -26,9 +27,15 @@ text_direct_tuple: tuple = (
     AddLinkedIn,
     AddYourPosition,
     AddAboutYou,
-    AddNewJob,
-    AddCompanyName,
-    AddCompanyExp
+    AddNewJob1,
+    AddCompanyName1,
+    AddCompanyExp1,
+    AddNewJob2,
+    AddCompanyName2,
+    AddCompanyExp2,
+    AddNewJob3,
+    AddCompanyName3,
+    AddCompanyExp3
 )
 
 query_direct_tuple: tuple = (

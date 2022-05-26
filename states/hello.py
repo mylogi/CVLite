@@ -1,4 +1,5 @@
 import requests
+from PIL import Image
 from fpdf import FPDF
 from telebot import types
 
@@ -12,7 +13,11 @@ data_for_cv_soft: dict = {}
 
 data_for_cv_hard: dict = {}
 
-data_for_cv_exp: dict = {}
+data_for_cv_exp_1: dict = {}
+
+data_for_cv_exp_2: dict = {}
+
+data_for_cv_exp_3: dict = {}
 
 data_number_soft: dict = {}
 
@@ -77,12 +82,24 @@ class BaseStateData(BaseState):
                 return DataStructures
             if message.data == 'next state: Experience':
                 return Experience
-            if message.data == 'next state: AddNewJob':
-                return AddNewJob
-            if message.data == 'next state: AddCompanyName':
-                return AddCompanyName
-            if message.data == 'next state: AddCompanyExp':
-                return AddCompanyExp
+            if message.data == 'next state: AddNewJob1':
+                return AddNewJob1
+            if message.data == 'next state: AddCompanyName1':
+                return AddCompanyName1
+            if message.data == 'next state: AddCompanyExp1':
+                return AddCompanyExp1
+            if message.data == 'next state: AddNewJob2':
+                return AddNewJob2
+            if message.data == 'next state: AddCompanyName2':
+                return AddCompanyName2
+            if message.data == 'next state: AddCompanyExp2':
+                return AddCompanyExp2
+            if message.data == 'next state: AddNewJob3':
+                return AddNewJob3
+            if message.data == 'next state: AddCompanyName3':
+                return AddCompanyName3
+            if message.data == 'next state: AddCompanyExp3':
+                return AddCompanyExp3
             if message.data == 'next state: AddYourPosition':
                 return AddYourPosition
             if message.data == 'next state: AddAboutYou':
@@ -239,6 +256,22 @@ class HardSkill(BaseStateData):
             self.for_remove_skill(data_for_cv_hard, data_number_hard)
 
 
+class JobAdd(BaseStateData):
+    position = 0
+    data_dictionary: dict = {}
+
+    def save_text(self, message):
+        text_by_user = message.text
+        self.for_save_text(text_by_user)
+
+    def for_save_text(self, text_by_user):
+        try:
+            if self.data_dictionary[self.chat_id]:
+                self.data_dictionary[self.chat_id][self.position] = text_by_user
+        except KeyError:
+            self.data_dictionary[self.chat_id] = {self.position: text_by_user}
+
+
 class Hello(BaseStateData):
     text = "<b>Welcome to CVLite!</b>"
 
@@ -328,8 +361,33 @@ class CreateCV(BaseStateData):
         data_for_cv[self.chat_id] = {'photo': file_id}
         file_info = self.bot.get_file(file_id)
         downloaded_file = self.bot.download_file(file_info.file_path)
-        with open('image.jpg', 'wb') as new_file:
+        with open(f'image{self.chat_id}.jpg', 'wb') as new_file:
             new_file.write(downloaded_file)
+        self.prepare_jpg()
+        self.create_photo_for_cv()
+
+    def prepare_jpg(self):
+        img = Image.open(f'image{self.chat_id}.jpg').convert("RGBA")
+        tuple_size = img.size
+        if tuple_size[0] / tuple_size[1] == 1.0:
+            img.thumbnail((170, 170))
+            img.save(f'image{self.chat_id}_170.png')
+        else:
+            diff_size = tuple_size[1] - tuple_size[0]
+            diff_var = tuple_size[1] - diff_size
+            crop_image = img.crop((0, 0, tuple_size[0], diff_var))
+            crop_image.thumbnail((170, 170))
+            crop_image.save(f'image{self.chat_id}_170.png')
+        # img.thumbnail((400, 400))
+        # img.save(f'image{self.chat_id}_400.png')
+
+    def create_photo_for_cv(self):
+        photo_for_cv = Image.new("RGBA", (170, 170))
+        img = Image.open(f'image{self.chat_id}_170.png').convert("RGBA")
+        img_msk = Image.open('elipse_mask_normal_170.png').convert("RGBA")
+        photo_for_cv.paste(img, (0, 0), img_msk)
+        # photo_for_cv.thumbnail((170, 170))
+        photo_for_cv.save(f'photo_for_cv{self.chat_id}_170.png')
 
     def return_step(self):
         return CreateCVStep
@@ -436,8 +494,10 @@ class AddLinkedIn(BaseStateData):
         text_by_user = message.text
         try:
             response = requests.get(text_by_user)
-            if response.status_code == 200:
+            if response.status_code in (200, 999):
                 data_for_cv[self.chat_id]['LinkedInUrl'] = text_by_user
+            else:
+                data_for_cv[self.chat_id]['LinkedInUrl'] = 'non-response'
         except Exception:
             data_for_cv[self.chat_id]['LinkedInUrl'] = 'non-response'
 
@@ -612,7 +672,7 @@ class SoftSkills(BaseStateData):
 class Collaboration(SoftSkill):
     text = "<b>Collaboration</b> \n\nWhat will you choose?"
     name = "Collaboration"
-    text_for_dict = "Collaboration - text"
+    text_for_dict = "Collaboration - text text text text text text text text text text text text text text text text text text text text text text text text"
 
     def return_step(self):
         return SoftSkills
@@ -621,7 +681,7 @@ class Collaboration(SoftSkill):
 class TimeManagement(SoftSkill):
     text = "<b>Time Management</b> \n\nWhat will you choose?"
     name = "TimeManagement"
-    text_for_dict = "Time Management - text"
+    text_for_dict = "Time Management - text text text text text text text text text text text text text text text text text text text text text text text text"
 
     def return_step(self):
         return SoftSkills
@@ -630,7 +690,7 @@ class TimeManagement(SoftSkill):
 class Feedback(SoftSkill):
     text = "<b>Feedback</b> \n\nWhat will you choose?"
     name = "Feedback"
-    text_for_dict = "Feedback - text"
+    text_for_dict = "Feedback - text text text text text text text text text text text text text text text text text text text text text text text text"
 
     def return_step(self):
         return SoftSkills
@@ -639,7 +699,7 @@ class Feedback(SoftSkill):
 class Analysis(SoftSkill):
     text = "<b>Analysis</b> \n\nWhat will you choose?"
     name = "Analysis"
-    text_for_dict = "Analysis - text"
+    text_for_dict = "Analysis - text text text text text text text text text text text text text text text text text text text text text text text text"
 
     def return_step(self):
         return SoftSkills
@@ -702,7 +762,7 @@ class HardSkills(BaseStateData):
 class Python(HardSkill):
     text = "<b>Python</b> \n\nWhat will you choose?"
     name = "Python"
-    text_for_dict = "Python - text"
+    text_for_dict = "Python - text text text text text text text text text text text text text text text text text text text text text text"
 
     def return_step(self):
         return HardSkills
@@ -711,7 +771,7 @@ class Python(HardSkill):
 class Django(HardSkill):
     text = "<b>Django</b> \n\nWhat will you choose?"
     name = "Django"
-    text_for_dict = "Django - text"
+    text_for_dict = "Django - text text text text text text text text text text text text text text text text text text text text text text"
 
     def return_step(self):
         return HardSkills
@@ -720,7 +780,7 @@ class Django(HardSkill):
 class OOP(HardSkill):
     text = "<b>OOP</b> \n\nWhat will you choose?"
     name = "OOP"
-    text_for_dict = "OOP - text"
+    text_for_dict = "OOP - text text text text text text text text text text text text text text text text text text text text text text"
 
     def return_step(self):
         return HardSkills
@@ -729,7 +789,7 @@ class OOP(HardSkill):
 class DataStructures(HardSkill):
     text = "<b>DataStructures</b> \n\nWhat will you choose?"
     name = "DataStructures"
-    text_for_dict = "DataStructures - text"
+    text_for_dict = "DataStructures - text text text text text text text text text text text text text text text text text text text text"
 
     def return_step(self):
         return HardSkills
@@ -744,19 +804,34 @@ class Experience(BaseStateData):
         print(data_for_cv_lang)
         print(data_for_cv_soft)
         print(data_for_cv_hard)
-        print(data_for_cv_exp)
+        print(data_for_cv_exp_1)
+        print(data_for_cv_exp_2)
+        print(data_for_cv_exp_3)
         print()
         keyboard = types.InlineKeyboardMarkup()
         if len(data_number_exp[self.chat_id]) == 3:
             keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: CreatePDF'))
-        else:
+        if len(data_number_exp[self.chat_id]) == 0:
             keyboard.add(types.InlineKeyboardButton(
                 text=f'Add job (You added: {len(data_number_exp[self.chat_id])})',
-                callback_data='next state: AddNewJob'))
+                callback_data='next state: AddNewJob1'))
+            keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: CreatePDF'))
+        if len(data_number_exp[self.chat_id]) == 1:
+            keyboard.add(types.InlineKeyboardButton(
+                text=f'Add job (You added: {len(data_number_exp[self.chat_id])})',
+                callback_data='next state: AddNewJob2')
+            )
+            keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: CreatePDF'))
+        if len(data_number_exp[self.chat_id]) == 2:
+            keyboard.add(types.InlineKeyboardButton(
+                text=f'Add job (You added: {len(data_number_exp[self.chat_id])})',
+                callback_data='next state: AddNewJob3')
+            )
             keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: CreatePDF'))
         return keyboard
 
     def display(self):
+        self.counter_job_place()
         try:
             if data_number_exp[self.chat_id]:
                 if len(data_number_exp[self.chat_id]) == 3:
@@ -772,71 +847,182 @@ class Experience(BaseStateData):
         except KeyError:
             self.for_display_skill(data_number_exp)
 
+    def counter_job_place(self):
+        if len(data_for_cv_exp_1) > 0:
+            data_number_exp[self.chat_id] = [1]
+        if len(data_for_cv_exp_1) > 0 and len(data_for_cv_exp_2) > 0:
+            data_number_exp[self.chat_id] = [1, 2]
+        if len(data_for_cv_exp_1) > 0 and len(data_for_cv_exp_2) > 0 and len(data_for_cv_exp_3) > 0:
+            data_number_exp[self.chat_id] = [1, 2, 3]
 
-class AddNewJob(BaseStateData):
+
+class AddNewJob1(JobAdd):
     text = "<b>Add relevant job</b> \n\nAdd your position in the company"
-
-    def save_text(self, message):
-        text_by_user = message.text
-        data_number_exp[self.chat_id].append(1)
-        try:
-            if data_for_cv_exp[self.chat_id]:
-                data_for_cv_exp[self.chat_id].append(text_by_user)
-        except KeyError:
-            data_for_cv_exp[self.chat_id] = [text_by_user]
+    position = 1
+    data_dictionary = data_for_cv_exp_1
 
     def return_step(self):
-        return AddNewJobStep
+        return AddNewJobStep1
 
 
-class AddNewJobStep(CreateStep):
+class AddNewJobStep1(CreateStep):
     text = '<b>Your position received</b> \n\nWhere next?'
 
     def get_keyboard(self):
         keyboard = types.InlineKeyboardMarkup()
-        keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddNewJob'))
-        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddCompanyName'))
+        keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddNewJob1'))
+        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddCompanyName1'))
         return keyboard
 
 
-class AddCompanyName(BaseStateData):
+class AddCompanyName1(JobAdd):
     text = "<b>Add company name</b> \n\nAdd company name for this position"
-
-    def save_text(self, message):
-        text_by_user = message.text
-        data_for_cv_exp[self.chat_id].append(text_by_user)
+    position = 2
+    data_dictionary = data_for_cv_exp_1
 
     def return_step(self):
-        return AddCompanyNameStep
+        return AddCompanyNameStep1
 
 
-class AddCompanyNameStep(CreateStep):
+class AddCompanyNameStep1(CreateStep):
     text = '<b>Your company name received</b> \n\nWhere next?'
 
     def get_keyboard(self):
         keyboard = types.InlineKeyboardMarkup()
-        keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddCompanyName'))
-        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddCompanyExp'))
+        keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddCompanyName1'))
+        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddCompanyExp1'))
         return keyboard
 
 
-class AddCompanyExp(BaseStateData):
+class AddCompanyExp1(JobAdd):
     text = "<b>Add experience</b> \n\nAdd your experience on this job"
-
-    def save_text(self, message):
-        text_by_user = message.text
-        data_for_cv_exp[self.chat_id].append(text_by_user)
+    position = 3
+    data_dictionary = data_for_cv_exp_1
 
     def return_step(self):
-        return AddCompanyExpStep
+        return AddCompanyExpStep1
 
 
-class AddCompanyExpStep(CreateStep):
+class AddCompanyExpStep1(CreateStep):
     text = '<b>Your experience received</b> \n\nWhere next?'
 
     def get_keyboard(self):
         keyboard = types.InlineKeyboardMarkup()
-        keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddCompanyName'))
+        keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddCompanyExp1'))
+        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: Experience'))
+        return keyboard
+
+
+class AddNewJob2(JobAdd):
+    text = "<b>Add relevant job</b> \n\nAdd your position in the company"
+    position = 1
+    data_dictionary = data_for_cv_exp_2
+
+    def return_step(self):
+        return AddNewJobStep2
+
+
+class AddNewJobStep2(CreateStep):
+    text = '<b>Your position received</b> \n\nWhere next?'
+
+    def get_keyboard(self):
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddNewJob2'))
+        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddCompanyName2'))
+        return keyboard
+
+
+class AddCompanyName2(JobAdd):
+    text = "<b>Add company name</b> \n\nAdd company name for this position"
+    position = 2
+    data_dictionary = data_for_cv_exp_2
+
+    def return_step(self):
+        return AddCompanyNameStep2
+
+
+class AddCompanyNameStep2(CreateStep):
+    text = '<b>Your company name received</b> \n\nWhere next?'
+
+    def get_keyboard(self):
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddCompanyName2'))
+        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddCompanyExp2'))
+        return keyboard
+
+
+class AddCompanyExp2(JobAdd):
+    text = "<b>Add experience</b> \n\nAdd your experience on this job"
+    position = 3
+    data_dictionary = data_for_cv_exp_2
+
+    def return_step(self):
+        return AddCompanyExpStep2
+
+
+class AddCompanyExpStep2(CreateStep):
+    text = '<b>Your experience received</b> \n\nWhere next?'
+
+    def get_keyboard(self):
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddCompanyExp2'))
+        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: Experience'))
+        return keyboard
+
+
+class AddNewJob3(JobAdd):
+    text = "<b>Add relevant job</b> \n\nAdd your position in the company"
+    position = 1
+    data_dictionary = data_for_cv_exp_3
+
+    def return_step(self):
+        return AddNewJobStep3
+
+
+class AddNewJobStep3(CreateStep):
+    text = '<b>Your position received</b> \n\nWhere next?'
+
+    def get_keyboard(self):
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddNewJob3'))
+        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddCompanyName3'))
+        return keyboard
+
+
+class AddCompanyName3(JobAdd):
+    text = "<b>Add company name</b> \n\nAdd company name for this position"
+    position = 2
+    data_dictionary = data_for_cv_exp_3
+
+    def return_step(self):
+        return AddCompanyNameStep1
+
+
+class AddCompanyNameStep3(CreateStep):
+    text = '<b>Your company name received</b> \n\nWhere next?'
+
+    def get_keyboard(self):
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddCompanyName3'))
+        keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: AddCompanyExp3'))
+        return keyboard
+
+
+class AddCompanyExp3(JobAdd):
+    text = "<b>Add experience</b> \n\nAdd your experience on this job"
+    position = 3
+    data_dictionary = data_for_cv_exp_3
+
+    def return_step(self):
+        return AddCompanyExpStep3
+
+
+class AddCompanyExpStep3(CreateStep):
+    text = '<b>Your experience received</b> \n\nWhere next?'
+
+    def get_keyboard(self):
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(types.InlineKeyboardButton(text='Try again', callback_data='next state: AddCompanyExp3'))
         keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: Experience'))
         return keyboard
 
@@ -875,8 +1061,8 @@ class CreatePDF(BaseState):
 
 
 class PDF(FPDF):
-    x_pos = 0
-    y_pos = 0
+    x_pos = 10
+    y_pos = 135
 
     def __init__(self, chat_id):
         super().__init__()
@@ -950,52 +1136,6 @@ class PDF(FPDF):
             align="l",
         )
 
-    def add_hard_skills(self):
-        self.set_font("DejaVu", style='', size=14)
-        self.set_y(117)
-        self.set_x(125)
-        self.cell(
-            w=0,
-            h=6,
-            txt="HARD SKILLS",
-            align="l",
-            fill=False,
-        )
-
-    def add_hard_skill(self):
-        self.set_font("DejaVu", style='', size=12)
-        self.set_y(127)
-        self.set_x(89)
-        self.multi_cell(
-            w=110,
-            h=10,
-            txt=f"{data_for_cv_hard[self.chat_id]['Python']}",
-            align="l",
-        )
-
-    def add_experience(self):
-        self.set_font("DejaVu", style='', size=14)
-        self.set_y(205)
-        self.set_x(125)
-        self.cell(
-            w=0,
-            h=6,
-            txt="EXPERIENCE",
-            align="l",
-            fill=False,
-        )
-
-    def add_experience_sample(self):
-        self.set_font("DejaVu", style='', size=12)
-        self.set_y(215)
-        self.set_x(89)
-        self.multi_cell(
-            w=110,
-            h=10,
-            txt=f"{data_for_cv_exp[self.chat_id]}",
-            align="l",
-        )
-
     def add_number(self):
         self.set_font("DejaVu", style='B', size=12)
         self.set_y(85)
@@ -1017,7 +1157,7 @@ class PDF(FPDF):
             align="l",
             fill=False,
         )
-        self.set_font("helvetica", size=12)
+        # self.set_font("helvetica", size=12)
 
     def add_email(self):
         self.set_font("DejaVu", style='B', size=12)
@@ -1069,31 +1209,30 @@ class PDF(FPDF):
         )
 
     def add_languages(self):
-        # self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
-        self.set_font("DejaVu", style='B', size=12)
-        self.set_y(135)
-        self.set_x(10)
-        self.cell(
-            w=0,
-            h=6,
-            txt="English:",
-            align="l",
-            fill=False,
-        )
-        self.set_y(135)
-        self.set_x(30)
-        self.set_font("DejaVu", style='', size=12)
-        self.cell(
-            w=0,
-            h=6,
-            txt=f"{data_for_cv_lang[self.chat_id]['English']}",
-            align="l",
-            fill=False,
-        )
-        self.set_font("DejaVu", size=12)
+        for key, value in data_for_cv_lang[self.chat_id].items():
+            self.set_font("DejaVu", style='B', size=12)
+            self.set_y(self.y_pos)
+            self.set_x(self.x_pos)
+            self.cell(
+                w=0,
+                h=6,
+                txt=f"{key}:",
+                align="l",
+                fill=False,
+            )
+            self.set_y(self.y_pos)
+            self.set_x(self.x_pos + len(key) + 12)
+            self.set_font("DejaVu", style='', size=12)
+            self.cell(
+                w=0,
+                h=6,
+                txt=f"{value}",
+                align="l",
+                fill=False,
+            )
+            self.y_pos += 10
 
     def add_soft_skills(self):
-        # self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
         self.set_font("DejaVu", style='', size=14)
         self.set_y(160)
         self.set_x(10)
@@ -1104,16 +1243,75 @@ class PDF(FPDF):
             align="l",
             fill=False,
         )
+        self.y_pos = 160
 
     def add_soft_skill(self):
-        # self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
+        if self.y_pos == 160:
+            self.y_pos = 175
+        for value in data_for_cv_soft[self.chat_id].values():
+            self.set_font("DejaVu", style='', size=12)
+            self.set_y(self.y_pos)
+            self.set_y(self.y_pos)
+            self.set_x(10)
+            self.multi_cell(
+                w=70,
+                h=7,
+                txt=f"{value}",
+                align="l",
+            )
+            if self.y_pos >= 175:
+                self.y_pos += 32
+
+    def add_hard_skills(self):
+        self.set_font("DejaVu", style='', size=14)
+        self.y_pos = 117
+        self.set_y(self.y_pos)
+        self.set_x(125)
+        self.cell(
+            w=0,
+            h=6,
+            txt="HARD SKILLS",
+            align="l",
+            fill=False,
+        )
+
+    def add_hard_skill(self):
+        if self.y_pos == 117:
+            self.y_pos = 132
+        for value in data_for_cv_hard[self.chat_id].values():
+            self.set_font("DejaVu", style='', size=12)
+            self.set_y(self.y_pos)
+            self.set_x(89)
+            self.multi_cell(
+                w=110,
+                h=8,
+                txt=f"{value}",
+                align="l",
+            )
+            if self.y_pos >= 132:
+                self.y_pos += 17
+
+    def add_experience(self):
+        self.set_font("DejaVu", style='', size=14)
+        self.y_pos = 195
+        self.set_y(self.y_pos)
+        self.set_x(125)
+        self.cell(
+            w=0,
+            h=6,
+            txt="EXPERIENCE",
+            align="l",
+            fill=False,
+        )
+
+    def add_experience_sample(self):
         self.set_font("DejaVu", style='', size=12)
-        self.set_y(175)
-        self.set_x(10)
+        self.set_y(215)
+        self.set_x(89)
         self.multi_cell(
-            w=70,
+            w=110,
             h=10,
-            txt=f"{data_for_cv_soft[self.chat_id]['Collaboration']}",
+            txt=f"{data_for_cv_exp_1[self.chat_id]}",
             align="l",
         )
 
@@ -1122,13 +1320,10 @@ class PDF(FPDF):
         self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
         self.add_page()
         self.chapter_title()
+        self.image(f'photo_for_cv{self.chat_id}_170.png', 10, 10)
         self.add_name()
         self.add_cv_position()
         self.add_about_you()
-        self.add_hard_skills()
-        self.add_hard_skill()
-        self.add_experience()
-        self.add_experience_sample()
         self.add_number()
         self.add_email()
         self.add_liked_in_url()
@@ -1136,4 +1331,7 @@ class PDF(FPDF):
         self.add_languages()
         self.add_soft_skills()
         self.add_soft_skill()
-        self.image('new_avatar_170.png', 10, 10)
+        self.add_hard_skills()
+        self.add_hard_skill()
+        self.add_experience()
+        self.add_experience_sample()
