@@ -850,10 +850,10 @@ class Experience(BaseStateData):
     def counter_job_place(self):
         if len(data_for_cv_exp_1) > 0:
             data_number_exp[self.chat_id] = [1]
-        if len(data_for_cv_exp_1) > 0 and len(data_for_cv_exp_2) > 0:
-            data_number_exp[self.chat_id] = [1, 2]
-        if len(data_for_cv_exp_1) > 0 and len(data_for_cv_exp_2) > 0 and len(data_for_cv_exp_3) > 0:
-            data_number_exp[self.chat_id] = [1, 2, 3]
+            if len(data_for_cv_exp_2) > 0:
+                data_number_exp[self.chat_id] = [1, 2]
+                if len(data_for_cv_exp_3) > 0:
+                    data_number_exp[self.chat_id] = [1, 2, 3]
 
 
 class AddNewJob1(JobAdd):
@@ -995,7 +995,7 @@ class AddCompanyName3(JobAdd):
     data_dictionary = data_for_cv_exp_3
 
     def return_step(self):
-        return AddCompanyNameStep1
+        return AddCompanyNameStep3
 
 
 class AddCompanyNameStep3(CreateStep):
@@ -1070,10 +1070,12 @@ class PDF(FPDF):
 
     def footer(self):
         self.set_y(-15)
-        self.set_font("DejaVu", "B", 8)
+        self.add_font('DejaVuB', 'B', 'DejaVuSansCondensed-Bold.ttf', uni=True)
+        self.set_font("DejaVuB", "B", 8)
         self.cell(0, 10, "CVLite", align="C")
 
     def chapter_title(self):
+        self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
         self.set_font("DejaVu", "", 16)
         # Setting background color
         width = self.get_string_width(self.title) + 150
@@ -1091,6 +1093,7 @@ class PDF(FPDF):
         )
 
     def add_name(self):
+        self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
         self.set_font("DejaVu", style='', size=24)
         self.set_y(24)
         self.set_x(125)
@@ -1103,6 +1106,7 @@ class PDF(FPDF):
         )
         self.set_y(34)
         self.set_x(125)
+        self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
         self.set_font("DejaVu", style='', size=24)
         self.cell(
             w=0,
@@ -1114,6 +1118,7 @@ class PDF(FPDF):
         self.set_font("DejaVu", size=12)
 
     def add_cv_position(self):
+        self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
         self.set_font("DejaVu", style='', size=14)
         self.set_y(49)
         self.set_x(125)
@@ -1126,6 +1131,7 @@ class PDF(FPDF):
         )
 
     def add_about_you(self):
+        self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
         self.set_font("DejaVu", style='', size=12)
         self.set_y(60)
         self.set_x(89)
@@ -1137,7 +1143,8 @@ class PDF(FPDF):
         )
 
     def add_number(self):
-        self.set_font("DejaVu", style='B', size=12)
+        self.add_font('DejaVuB', 'B', 'DejaVuSansCondensed-Bold.ttf', uni=True)
+        self.set_font("DejaVuB", style='B', size=12)
         self.set_y(85)
         self.set_x(10)
         self.cell(
@@ -1148,7 +1155,8 @@ class PDF(FPDF):
             fill=False,
         )
         self.set_y(85)
-        self.set_x(26)
+        self.set_x(28)
+        self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
         self.set_font("DejaVu", style='', size=12)
         self.cell(
             w=0,
@@ -1160,7 +1168,8 @@ class PDF(FPDF):
         # self.set_font("helvetica", size=12)
 
     def add_email(self):
-        self.set_font("DejaVu", style='B', size=12)
+        self.add_font('DejaVuB', 'B', 'DejaVuSansCondensed-Bold.ttf', uni=True)
+        self.set_font("DejaVuB", style='B', size=12)
         self.set_y(95)
         self.set_x(10)
         self.cell(
@@ -1172,6 +1181,7 @@ class PDF(FPDF):
         )
         self.set_y(95)
         self.set_x(26)
+        self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
         self.set_font("DejaVu", style='', size=12)
         self.cell(
             w=0,
@@ -1183,6 +1193,7 @@ class PDF(FPDF):
         self.set_font("DejaVu", size=12)
 
     def add_liked_in_url(self):
+        self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
         self.set_font("DejaVu", size=12)
         self.set_y(105)
         self.set_x(10)
@@ -1197,6 +1208,7 @@ class PDF(FPDF):
         )
 
     def add_language_skills(self):
+        self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
         self.set_font("DejaVu", style='', size=14)
         self.set_y(120)
         self.set_x(10)
@@ -1210,7 +1222,8 @@ class PDF(FPDF):
 
     def add_languages(self):
         for key, value in data_for_cv_lang[self.chat_id].items():
-            self.set_font("DejaVu", style='B', size=12)
+            self.add_font('DejaVuB', 'B', 'DejaVuSansCondensed-Bold.ttf', uni=True)
+            self.set_font("DejaVuB", style='B', size=12)
             self.set_y(self.y_pos)
             self.set_x(self.x_pos)
             self.cell(
@@ -1221,7 +1234,8 @@ class PDF(FPDF):
                 fill=False,
             )
             self.set_y(self.y_pos)
-            self.set_x(self.x_pos + len(key) + 12)
+            self.set_x(self.x_pos + len(key) + 15)
+            self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
             self.set_font("DejaVu", style='', size=12)
             self.cell(
                 w=0,
@@ -1233,6 +1247,7 @@ class PDF(FPDF):
             self.y_pos += 10
 
     def add_soft_skills(self):
+        self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
         self.set_font("DejaVu", style='', size=14)
         self.set_y(160)
         self.set_x(10)
@@ -1249,6 +1264,7 @@ class PDF(FPDF):
         if self.y_pos == 160:
             self.y_pos = 175
         for value in data_for_cv_soft[self.chat_id].values():
+            self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
             self.set_font("DejaVu", style='', size=12)
             self.set_y(self.y_pos)
             self.set_y(self.y_pos)
@@ -1263,6 +1279,7 @@ class PDF(FPDF):
                 self.y_pos += 32
 
     def add_hard_skills(self):
+        self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
         self.set_font("DejaVu", style='', size=14)
         self.y_pos = 117
         self.set_y(self.y_pos)
@@ -1279,6 +1296,7 @@ class PDF(FPDF):
         if self.y_pos == 117:
             self.y_pos = 132
         for value in data_for_cv_hard[self.chat_id].values():
+            self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
             self.set_font("DejaVu", style='', size=12)
             self.set_y(self.y_pos)
             self.set_x(89)
@@ -1292,6 +1310,7 @@ class PDF(FPDF):
                 self.y_pos += 17
 
     def add_experience(self):
+        self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
         self.set_font("DejaVu", style='', size=14)
         self.y_pos = 195
         self.set_y(self.y_pos)
@@ -1305,19 +1324,25 @@ class PDF(FPDF):
         )
 
     def add_experience_sample(self):
-        self.set_font("DejaVu", style='', size=12)
-        self.set_y(215)
-        self.set_x(89)
-        self.multi_cell(
-            w=110,
-            h=10,
-            txt=f"{data_for_cv_exp_1[self.chat_id]}",
-            align="l",
-        )
+        self.y_pos = 210
+        for value in data_for_cv_exp_1[self.chat_id].values():
+            if self.y_pos == 210:
+                self.add_font('DejaVuB', 'B', 'DejaVuSansCondensed-Bold.ttf', uni=True)
+                self.set_font("DejaVuB", style='B', size=12)
+            self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
+            self.set_font("DejaVu", style='', size=12)
+            self.set_y(self.y_pos)
+            self.set_x(89)
+            self.cell(
+                w=0,
+                h=10,
+                txt=f"{value}",
+                align="l",
+            )
+            if self.y_pos >= 210:
+                self.y_pos += 7
 
     def create_cv_template(self):
-        self.add_font('DejaVu', 'B', 'DejaVuSansCondensed.ttf', uni=True)
-        self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
         self.add_page()
         self.chapter_title()
         self.image(f'photo_for_cv{self.chat_id}_170.png', 10, 10)
