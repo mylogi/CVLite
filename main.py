@@ -8,11 +8,12 @@ from dotenv import load_dotenv
 
 from states.base import BaseState
 
-from states.hello import Hello, FirstTemplate, SecondTemplate, CreateCV, AddName, AddSurname, AddMobNumber, AddEmail, \
+from states.bot_states import Hello, FirstTemplate, SecondTemplate, CreateCV, AddName, AddSurname, AddMobNumber, \
+    AddEmail, \
     AddLinkedIn, AddYourPosition, AddAboutYou, English, Ukrainian, Collaboration, Feedback, TimeManagement, Analysis, \
     Python, OOP, DataStructures, \
     Django, AddNewJob1, AddCompanyName1, AddCompanyExp1, AddNewJob2, AddCompanyName2, AddCompanyExp2, AddNewJob3, \
-    AddCompanyName3, AddCompanyExp3, CreatePDF
+    AddCompanyName3, AddCompanyExp3, CreatePDF, FinishIteration
 
 load_dotenv()
 
@@ -78,7 +79,9 @@ def special_call_back(message):
     if clients[message.from_user.id] == CreatePDF:
         state = CreatePDF(bot, chat_id)
         state.create_file(message)
-        # state.send_file()
+        new_state_class = FinishIteration
+        clients[chat_id] = new_state_class
+        display(chat_id)
     else:
         chat_id = message.from_user.id
         query_processing(clients[chat_id], message, chat_id)
@@ -198,7 +201,7 @@ def message_check(message):
     message_text = message.text
     for i in range(len(message_text)):
         if message_text[i].isalpha() or message_text[i].isdigit() or message_text[i] in (
-                '-', '@', '.', '+', '!', '&', '?', '(', ')', ':', '/', '\\', '*', '%', '$', ' ', '='):
+                '-', '@', '.', '+', '!', '&', '?', '(', ')', ':', '/', '\\', '*', '%', '$', ' ', '=', '_'):
             continue
         else:
             return False

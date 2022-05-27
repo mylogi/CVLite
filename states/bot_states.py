@@ -326,6 +326,23 @@ class AvailableCVTemplates(BaseStateData):
 class FirstTemplate(Template):
     text = "<b>First template</b>"
 
+    def display(self):
+        try:
+            if MESSAGES[self.chat_id]:
+                self.bot.delete_message(self.chat_id, MESSAGES[self.chat_id], timeout=0)
+                message_from_bot = self.bot.send_photo(
+                    self.chat_id,
+                    photo=open('media/CV_bot.jpg', 'rb'),
+                    caption=self.text,
+                    reply_markup=self.get_keyboard(),
+                    parse_mode='HTML')
+                MESSAGES[self.chat_id] = message_from_bot.id
+        except KeyError:
+            message_from_bot = self.bot.send_photo(
+                self.chat_id, photo=open('media/CV_bot.jpg', 'rb'), reply_markup=self.get_keyboard(),
+                parse_mode='HTML')
+            MESSAGES[self.chat_id] = message_from_bot.id
+
 
 class SecondTemplate(Template):
     text = "<b>Second template</b>"
@@ -374,7 +391,7 @@ class ThirdTip(Tip):
 
 
 class CreateCV(BaseStateData):
-    text = "<b>Create CV</b> \n\nDrop photo here \n\nRequirements: ..."
+    text = "<b>Create CV</b> \n\nDrop photo here \n\nRequirements: The aspect ratio is one to one. \nPhoto formats (jpg, png, etc.)."
 
     def save_jpg(self, message):
         file_id = message.photo[-1].file_id
@@ -560,7 +577,7 @@ class AddYourPositionStep(CreateStep):
 
 
 class AddAboutYou(BaseStateData):
-    text = '<b>Next step</b> \n\nEnter "About You": \n\nRequirements: ...'
+    text = '<b>Next step</b> \n\nEnter "About You": \n\nRequirements: Text up to 260 characters.'
 
     def save_text(self, message):
         text_by_user = message.text
@@ -883,7 +900,7 @@ class Experience(BaseStateData):
 
 
 class AddNewJob1(JobAdd):
-    text = "<b>Add relevant job</b> \n\nAdd your position in the company"
+    text = "<b>Add relevant job</b> \n\nAdd your position in the company \n\nRequirements: Text up to 50 characters."
     position = 1
     data_dictionary = data_for_cv_exp_1
 
@@ -902,7 +919,7 @@ class AddNewJobStep1(CreateStep):
 
 
 class AddCompanyName1(JobAdd):
-    text = "<b>Add company name</b> \n\nAdd company name for this position"
+    text = "<b>Add company name</b> \n\nAdd company name for this position \n\nRequirements: Text up to 50 characters."
     position = 2
     data_dictionary = data_for_cv_exp_1
 
@@ -921,7 +938,7 @@ class AddCompanyNameStep1(CreateStep):
 
 
 class AddCompanyExp1(JobAdd):
-    text = "<b>Add experience</b> \n\nAdd your experience on this job"
+    text = "<b>Add experience</b> \n\nAdd your experience on this job \n\nRequirements: Text up to 50 characters."
     position = 3
     data_dictionary = data_for_cv_exp_1
 
@@ -940,7 +957,7 @@ class AddCompanyExpStep1(CreateStep):
 
 
 class AddNewJob2(JobAdd):
-    text = "<b>Add relevant job</b> \n\nAdd your position in the company"
+    text = "<b>Add relevant job</b> \n\nAdd your position in the company \n\nRequirements: Text up to 50 characters."
     position = 1
     data_dictionary = data_for_cv_exp_2
 
@@ -959,7 +976,7 @@ class AddNewJobStep2(CreateStep):
 
 
 class AddCompanyName2(JobAdd):
-    text = "<b>Add company name</b> \n\nAdd company name for this position"
+    text = "<b>Add company name</b> \n\nAdd company name for this position \n\nRequirements: Text up to 50 characters."
     position = 2
     data_dictionary = data_for_cv_exp_2
 
@@ -978,7 +995,7 @@ class AddCompanyNameStep2(CreateStep):
 
 
 class AddCompanyExp2(JobAdd):
-    text = "<b>Add experience</b> \n\nAdd your experience on this job"
+    text = "<b>Add experience</b> \n\nAdd your experience on this job \n\nRequirements: Text up to 50 characters."
     position = 3
     data_dictionary = data_for_cv_exp_2
 
@@ -997,7 +1014,7 @@ class AddCompanyExpStep2(CreateStep):
 
 
 class AddNewJob3(JobAdd):
-    text = "<b>Add relevant job</b> \n\nAdd your position in the company"
+    text = "<b>Add relevant job</b> \n\nAdd your position in the company \n\nRequirements: Text up to 50 characters."
     position = 1
     data_dictionary = data_for_cv_exp_3
 
@@ -1016,7 +1033,7 @@ class AddNewJobStep3(CreateStep):
 
 
 class AddCompanyName3(JobAdd):
-    text = "<b>Add company name</b> \n\nAdd company name for this position"
+    text = "<b>Add company name</b> \n\nAdd company name for this position \n\nRequirements: Text up to 50 characters."
     position = 2
     data_dictionary = data_for_cv_exp_3
 
@@ -1035,7 +1052,7 @@ class AddCompanyNameStep3(CreateStep):
 
 
 class AddCompanyExp3(JobAdd):
-    text = "<b>Add experience</b> \n\nAdd your experience on this job"
+    text = "<b>Add experience</b> \n\nAdd your experience on this job \n\nRequirements: Text up to 50 characters."
     position = 3
     data_dictionary = data_for_cv_exp_3
 
@@ -1076,7 +1093,6 @@ class CreatePDF(BaseState):
             pdf.output(
                 f"{data_for_cv[self.chat_id]['YourPosition']}_{data_for_cv[self.chat_id]['name']}{data_for_cv[self.chat_id]['surname']}.pdf")
             self.bot.delete_message(self.chat_id, MESSAGES[self.chat_id], timeout=0)
-            self.text = '<b>YOUR CV CREATED</b> \n\nPlease enter <b>/start</b> to continue'
             self.send_file()
             self.clean_data()
             message_from_bot = self.bot.send_message(self.chat_id, self.text, parse_mode='HTML')
@@ -1443,3 +1459,7 @@ class PDF(FPDF):
         self.add_experience_sample()
         self.add_experience_sample_2()
         self.add_experience_sample_3()
+
+
+class FinishIteration(BaseStateData):
+    text = '<b>YOUR CV CREATED</b> \n\nPlease enter <b>/start</b> to continue'
