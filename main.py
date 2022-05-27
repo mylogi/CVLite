@@ -2,9 +2,12 @@ import os
 
 import telebot
 
+from email_validator import validate_email, EmailNotValidError
+
 from dotenv import load_dotenv
 
 from states.base import BaseState
+
 from states.hello import Hello, FirstTemplate, SecondTemplate, CreateCV, AddName, AddSurname, AddMobNumber, AddEmail, \
     AddLinkedIn, AddYourPosition, AddAboutYou, English, Ukrainian, Collaboration, Feedback, TimeManagement, Analysis, \
     Python, OOP, DataStructures, \
@@ -151,6 +154,16 @@ def choice_text_processing(chat_id, message):
                 parse_mode='HTML'
             )
             display(chat_id)
+    elif clients[chat_id] == AddEmail:
+        if validate_email_func(message):
+            text_processing(clients[chat_id], message, chat_id)
+        else:
+            bot.send_message(
+                chat_id,
+                "<b>Incorrect email. \n\nPlease try again enter correct</b>",
+                parse_mode='HTML'
+            )
+            display(chat_id)
     elif message_check(message):
         text_processing(clients[chat_id], message, chat_id)
     else:
@@ -185,7 +198,7 @@ def message_check(message):
     message_text = message.text
     for i in range(len(message_text)):
         if message_text[i].isalpha() or message_text[i].isdigit() or message_text[i] in (
-        '-', '@', '.', '+', '!', '&', '?', '(', ')', ':', '/', '\\', '*', '%', '$', ' ', '='):
+                '-', '@', '.', '+', '!', '&', '?', '(', ')', ':', '/', '\\', '*', '%', '$', ' ', '='):
             continue
         else:
             return False
@@ -200,6 +213,16 @@ def message_check_for_file(message):
         else:
             return False
     return True
+
+
+def validate_email_func(message):
+    email_from_user = message.text
+    try:
+        email = validate_email(email_from_user).email
+        print(email)
+        return True
+    except EmailNotValidError:
+        return False
 
 
 if __name__ == '__main__':

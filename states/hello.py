@@ -1,7 +1,10 @@
 import requests
-from PIL import Image
-from fpdf import FPDF
+
 from telebot import types
+
+from fpdf import FPDF
+
+from PIL import Image
 
 from states.base import BaseState, MESSAGES
 
@@ -262,7 +265,10 @@ class JobAdd(BaseStateData):
 
     def save_text(self, message):
         text_by_user = message.text
-        self.for_save_text(text_by_user)
+        if len(text_by_user) > 50:
+            self.for_save_text(f'{text_by_user[:47]}...')
+        else:
+            self.for_save_text(text_by_user)
 
     def for_save_text(self, text_by_user):
         try:
@@ -280,6 +286,20 @@ class Hello(BaseStateData):
         keyboard.add(types.InlineKeyboardButton(text='CV Templates', callback_data='next state: AvailableCVTemplates'))
         keyboard.add(types.InlineKeyboardButton(text='CV Tips', callback_data='next state: CVTips'))
         return keyboard
+
+    def display(self):
+        try:
+            if MESSAGES[self.chat_id]:
+                self.bot.delete_message(self.chat_id, MESSAGES[self.chat_id], timeout=0)
+                message_from_bot = self.bot.send_photo(
+                    self.chat_id, reply_markup=self.get_keyboard(), photo=open('media/welcome.jpg', 'rb'),
+                    parse_mode='HTML')
+                MESSAGES[self.chat_id] = message_from_bot.id
+        except KeyError:
+            message_from_bot = self.bot.send_photo(
+                self.chat_id, reply_markup=self.get_keyboard(), photo=open('media/welcome.jpg', 'rb'),
+                parse_mode='HTML')
+            MESSAGES[self.chat_id] = message_from_bot.id
 
 
 class CVLite(BaseStateData):
@@ -361,33 +381,30 @@ class CreateCV(BaseStateData):
         data_for_cv[self.chat_id] = {'photo': file_id}
         file_info = self.bot.get_file(file_id)
         downloaded_file = self.bot.download_file(file_info.file_path)
-        with open(f'image{self.chat_id}.jpg', 'wb') as new_file:
+        with open(f'media/image{self.chat_id}.jpg', 'wb') as new_file:
             new_file.write(downloaded_file)
         self.prepare_jpg()
         self.create_photo_for_cv()
 
     def prepare_jpg(self):
-        img = Image.open(f'image{self.chat_id}.jpg').convert("RGBA")
+        img = Image.open(f'media/image{self.chat_id}.jpg').convert("RGBA")
         tuple_size = img.size
         if tuple_size[0] / tuple_size[1] == 1.0:
             img.thumbnail((170, 170))
-            img.save(f'image{self.chat_id}_170.png')
+            img.save(f'media/image{self.chat_id}_170.png')
         else:
             diff_size = tuple_size[1] - tuple_size[0]
             diff_var = tuple_size[1] - diff_size
             crop_image = img.crop((0, 0, tuple_size[0], diff_var))
             crop_image.thumbnail((170, 170))
-            crop_image.save(f'image{self.chat_id}_170.png')
-        # img.thumbnail((400, 400))
-        # img.save(f'image{self.chat_id}_400.png')
+            crop_image.save(f'media/image{self.chat_id}_170.png')
 
     def create_photo_for_cv(self):
         photo_for_cv = Image.new("RGBA", (170, 170))
-        img = Image.open(f'image{self.chat_id}_170.png').convert("RGBA")
-        img_msk = Image.open('elipse_mask_normal_170.png').convert("RGBA")
+        img = Image.open(f'media/image{self.chat_id}_170.png').convert("RGBA")
+        img_msk = Image.open('media/elipse_mask_normal_170.png').convert("RGBA")
         photo_for_cv.paste(img, (0, 0), img_msk)
-        # photo_for_cv.thumbnail((170, 170))
-        photo_for_cv.save(f'photo_for_cv{self.chat_id}_170.png')
+        photo_for_cv.save(f'media/photo_for_cv{self.chat_id}_170.png')
 
     def return_step(self):
         return CreateCVStep
@@ -471,7 +488,10 @@ class AddMobNumber(BaseStateData):
 
     def save_text(self, message):
         text_by_user = message.text
-        data_for_cv[self.chat_id]['number'] = text_by_user
+        if len(text_by_user) > 17:
+            data_for_cv[self.chat_id]['number'] = text_by_user[:17]
+        else:
+            data_for_cv[self.chat_id]['number'] = text_by_user
 
     def return_step(self):
         return AddMobNumberStep
@@ -520,7 +540,10 @@ class AddYourPosition(BaseStateData):
 
     def save_text(self, message):
         text_by_user = message.text
-        data_for_cv[self.chat_id]['YourPosition'] = text_by_user
+        if len(text_by_user) > 30:
+            data_for_cv[self.chat_id]['YourPosition'] = f'{text_by_user[:28]}...'
+        else:
+            data_for_cv[self.chat_id]['YourPosition'] = text_by_user
 
     def return_step(self):
         return AddYourPositionStep
@@ -541,7 +564,10 @@ class AddAboutYou(BaseStateData):
 
     def save_text(self, message):
         text_by_user = message.text
-        data_for_cv[self.chat_id]['AboutYou'] = text_by_user
+        if len(text_by_user) > 260:
+            data_for_cv[self.chat_id]['AboutYou'] = f"{text_by_user[:257]}..."
+        else:
+            data_for_cv[self.chat_id]['AboutYou'] = text_by_user
 
     def return_step(self):
         return AddAboutYouStep
@@ -672,7 +698,7 @@ class SoftSkills(BaseStateData):
 class Collaboration(SoftSkill):
     text = "<b>Collaboration</b> \n\nWhat will you choose?"
     name = "Collaboration"
-    text_for_dict = "Collaboration - text text text text text text text text text text text text text text text text text text text text text text text text"
+    text_for_dict = "Collaboration is a partnership; a union; the act of producing or making something together. Collaboration can take place."
 
     def return_step(self):
         return SoftSkills
@@ -681,7 +707,7 @@ class Collaboration(SoftSkill):
 class TimeManagement(SoftSkill):
     text = "<b>Time Management</b> \n\nWhat will you choose?"
     name = "TimeManagement"
-    text_for_dict = "Time Management - text text text text text text text text text text text text text text text text text text text text text text text text"
+    text_for_dict = "Time Management - skills are behavioural and organizational techniques and attitudes that help to improve your productivity."
 
     def return_step(self):
         return SoftSkills
@@ -690,7 +716,7 @@ class TimeManagement(SoftSkill):
 class Feedback(SoftSkill):
     text = "<b>Feedback</b> \n\nWhat will you choose?"
     name = "Feedback"
-    text_for_dict = "Feedback - text text text text text text text text text text text text text text text text text text text text text text text text"
+    text_for_dict = "Feedback is not advice, praise, or evaluation. Feedback is information about how one is doing in effort to reach a goal there are."
 
     def return_step(self):
         return SoftSkills
@@ -699,7 +725,7 @@ class Feedback(SoftSkill):
 class Analysis(SoftSkill):
     text = "<b>Analysis</b> \n\nWhat will you choose?"
     name = "Analysis"
-    text_for_dict = "Analysis - text text text text text text text text text text text text text text text text text text text text text text text text"
+    text_for_dict = "Analysis is a detailed examination of anything complex in order to understand its nature or to determine its essential features."
 
     def return_step(self):
         return SoftSkills
@@ -762,7 +788,7 @@ class HardSkills(BaseStateData):
 class Python(HardSkill):
     text = "<b>Python</b> \n\nWhat will you choose?"
     name = "Python"
-    text_for_dict = "Python - text text text text text text text text text text text text text text text text text text text text text text"
+    text_for_dict = "Python - convenience has made it the most popular language for machine learning and AI."
 
     def return_step(self):
         return HardSkills
@@ -771,7 +797,7 @@ class Python(HardSkill):
 class Django(HardSkill):
     text = "<b>Django</b> \n\nWhat will you choose?"
     name = "Django"
-    text_for_dict = "Django - text text text text text text text text text text text text text text text text text text text text text text"
+    text_for_dict = "Django is a high-level Python web framework that encourages rapid development and clean, pragmatic."
 
     def return_step(self):
         return HardSkills
@@ -780,7 +806,7 @@ class Django(HardSkill):
 class OOP(HardSkill):
     text = "<b>OOP</b> \n\nWhat will you choose?"
     name = "OOP"
-    text_for_dict = "OOP - text text text text text text text text text text text text text text text text text text text text text text"
+    text_for_dict = "OOP - the basic principles of OOP involves Abstraction, Encapsulation, Inheritance, and Polymorphism."
 
     def return_step(self):
         return HardSkills
@@ -789,7 +815,7 @@ class OOP(HardSkill):
 class DataStructures(HardSkill):
     text = "<b>DataStructures</b> \n\nWhat will you choose?"
     name = "DataStructures"
-    text_for_dict = "DataStructures - text text text text text text text text text text text text text text text text text text text text"
+    text_for_dict = "DataStructures is a storage that is used to store and organize data. It is a way of arranging data on."
 
     def return_step(self):
         return HardSkills
@@ -1116,7 +1142,7 @@ class PDF(FPDF):
         self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
         self.set_font("DejaVu", style='', size=24)
         self.set_y(24)
-        self.set_x(125)
+        self.set_x(125 - len(data_for_cv[self.chat_id]['name']) + 10)
         self.cell(
             w=0,
             h=6,
@@ -1125,7 +1151,7 @@ class PDF(FPDF):
             fill=False,
         )
         self.set_y(34)
-        self.set_x(125)
+        self.set_x(125 - len(data_for_cv[self.chat_id]['surname']) + 10)
         self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
         self.set_font("DejaVu", style='', size=24)
         self.cell(
@@ -1141,7 +1167,7 @@ class PDF(FPDF):
         self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
         self.set_font("DejaVu", style='', size=14)
         self.set_y(49)
-        self.set_x(125)
+        self.set_x(125 - len(data_for_cv[self.chat_id]['YourPosition']) + 15)
         self.cell(
             w=0,
             h=6,
@@ -1157,7 +1183,7 @@ class PDF(FPDF):
         self.set_x(89)
         self.multi_cell(
             w=110,
-            h=10,
+            h=8,
             txt=f"{data_for_cv[self.chat_id]['AboutYou']}",
             align="l",
         )
@@ -1400,7 +1426,7 @@ class PDF(FPDF):
     def create_cv_template(self):
         self.add_page()
         self.chapter_title()
-        self.image(f'photo_for_cv{self.chat_id}_170.png', 10, 10)
+        self.image(f'media/photo_for_cv{self.chat_id}_170.png', 10, 10)
         self.add_name()
         self.add_cv_position()
         self.add_about_you()
