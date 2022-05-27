@@ -345,7 +345,7 @@ class FirstTemplate(Template):
 
 
 class SecondTemplate(Template):
-    text = "<b>Second template</b>"
+    text = "<b>Second template</b> \n\nOops! \n\nNot yet ready. Go to the first template."
 
 
 class FirstTip(Tip):
@@ -391,7 +391,7 @@ class ThirdTip(Tip):
 
 
 class CreateCV(BaseStateData):
-    text = "<b>Create CV</b> \n\nDrop photo here \n\nRequirements: The aspect ratio is one to one. \nPhoto formats (jpg, png, etc.)."
+    text = "<b>Create CV</b> \n\nDrop photo here \n\nRequirements: \nThe aspect ratio is one to one. \nPhoto formats (jpg, png, etc.)."
 
     def save_jpg(self, message):
         file_id = message.photo[-1].file_id
