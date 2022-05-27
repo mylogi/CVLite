@@ -102,6 +102,17 @@ def photo(message):
     save_jpg(state_variable, message, chat_id)
 
 
+@bot.message_handler(content_types=['document', 'video', 'audio', 'voice', 'file', 'sticker', 'animation'])
+def photo(message):
+    chat_id = message.from_user.id
+    bot.send_message(
+        chat_id,
+        "<b>Sorry, I don't work with this format now</b>",
+        parse_mode='HTML'
+    )
+    display(chat_id)
+
+
 def display(chat_id):
     state = get_state(chat_id)
     state.display()
@@ -130,7 +141,25 @@ def save_jpg(state, message, chat_id):
 
 
 def choice_text_processing(chat_id, message):
-    text_processing(clients[chat_id], message, chat_id)
+    if clients[chat_id] in [AddName, AddSurname, AddYourPosition]:
+        if message_check_for_file(message):
+            text_processing(clients[chat_id], message, chat_id)
+        else:
+            bot.send_message(
+                chat_id,
+                "<b>Don't use smiles or special characters when filling these fields (name, surname, position).</b>",
+                parse_mode='HTML'
+            )
+            display(chat_id)
+    elif message_check(message):
+        text_processing(clients[chat_id], message, chat_id)
+    else:
+        bot.send_message(
+            chat_id,
+            "<b>Don't use smiles or special characters (except for dashes, plus, at, dot) when filling out fields.</b>",
+            parse_mode='HTML'
+        )
+        display(chat_id)
 
 
 def text_processing(state, message, chat_id):
@@ -150,6 +179,27 @@ def query_processing(state, message, chat_id):
 def returned_step(state, chat_id):
     returned_state_step = state.return_step()
     clients[chat_id] = returned_state_step
+
+
+def message_check(message):
+    message_text = message.text
+    for i in range(len(message_text)):
+        if message_text[i].isalpha() or message_text[i].isdigit() or message_text[i] in (
+        '-', '@', '.', '+', '!', '&', '?', '(', ')', ':', '/', '\\', '*', '%', '$', ' ', '='):
+            continue
+        else:
+            return False
+    return True
+
+
+def message_check_for_file(message):
+    message_text = message.text
+    for i in range(len(message_text)):
+        if message_text[i].isalpha() or message_text[i].isdigit() or message_text[i] == ' ':
+            continue
+        else:
+            return False
+    return True
 
 
 if __name__ == '__main__':

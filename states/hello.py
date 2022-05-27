@@ -1036,20 +1036,25 @@ class CreatePDF(BaseState):
         return keyboard
 
     def display(self):
-        self.bot.send_message(
+        self.bot.delete_message(self.chat_id, MESSAGES[self.chat_id], timeout=0)
+        message_from_bot = self.bot.send_message(
             self.chat_id, self.text, reply_markup=self.get_keyboard(),
             parse_mode='HTML')
+        MESSAGES[self.chat_id] = message_from_bot.id
 
     def create_file(self, message: types.CallbackQuery):
         if message.data == 'next state: CreatePDF':
             pdf = PDF(self.chat_id)
-            # pdf.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
-            # pdf.add_font('DejaVu', 'B', 'DejaVuSansCondensed.ttf', uni=True)
             pdf.set_title("P PP PP PP PP")
             pdf.create_cv_template()
             pdf.output(
                 f"{data_for_cv[self.chat_id]['YourPosition']}_{data_for_cv[self.chat_id]['name']}{data_for_cv[self.chat_id]['surname']}.pdf")
+            self.bot.delete_message(self.chat_id, MESSAGES[self.chat_id], timeout=0)
+            self.text = '<b>YOUR CV CREATED</b> \n\nPlease enter <b>/start</b> to continue'
             self.send_file()
+            self.clean_data()
+            message_from_bot = self.bot.send_message(self.chat_id, self.text, parse_mode='HTML')
+            MESSAGES[self.chat_id] = message_from_bot.id
 
     def send_file(self):
         self.bot.send_document(
@@ -1058,6 +1063,21 @@ class CreatePDF(BaseState):
                 f"{data_for_cv[self.chat_id]['YourPosition']}_{data_for_cv[self.chat_id]['name']}{data_for_cv[self.chat_id]['surname']}.pdf",
                 'rb')
         )
+
+    def clean_data(self):
+        del data_for_cv[self.chat_id]
+        del data_for_cv_lang[self.chat_id]
+        del data_for_cv_soft[self.chat_id]
+        del data_for_cv_hard[self.chat_id]
+        del data_number_soft[self.chat_id]
+        del data_number_exp[self.chat_id]
+        del data_number_hard[self.chat_id]
+        try:
+            del data_for_cv_exp_1[self.chat_id]
+            del data_for_cv_exp_2[self.chat_id]
+            del data_for_cv_exp_3[self.chat_id]
+        except KeyError:
+            print('Without data')
 
 
 class PDF(FPDF):
@@ -1312,7 +1332,7 @@ class PDF(FPDF):
     def add_experience(self):
         self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
         self.set_font("DejaVu", style='', size=14)
-        self.y_pos = 195
+        self.y_pos = 190
         self.set_y(self.y_pos)
         self.set_x(125)
         self.cell(
@@ -1323,24 +1343,59 @@ class PDF(FPDF):
             fill=False,
         )
 
+    def for_add_experience(self, value, for_y_data: int):
+        self.set_y(self.y_pos)
+        self.set_x(89)
+        self.cell(
+            w=0,
+            h=10,
+            txt=f"{value}",
+            align="l",
+        )
+        if self.y_pos >= for_y_data:
+            self.y_pos += 6
+
     def add_experience_sample(self):
-        self.y_pos = 210
-        for value in data_for_cv_exp_1[self.chat_id].values():
-            if self.y_pos == 210:
-                self.add_font('DejaVuB', 'B', 'DejaVuSansCondensed-Bold.ttf', uni=True)
-                self.set_font("DejaVuB", style='B', size=12)
-            self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
-            self.set_font("DejaVu", style='', size=12)
-            self.set_y(self.y_pos)
-            self.set_x(89)
-            self.cell(
-                w=0,
-                h=10,
-                txt=f"{value}",
-                align="l",
-            )
-            if self.y_pos >= 210:
-                self.y_pos += 7
+        self.y_pos = 200
+        try:
+            for value in data_for_cv_exp_1[self.chat_id].values():
+                if self.y_pos == 200:
+                    self.add_font('DejaVuB', 'B', 'DejaVuSansCondensed-Bold.ttf', uni=True)
+                    self.set_font("DejaVuB", style='B', size=12)
+                else:
+                    self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
+                    self.set_font("DejaVu", style='', size=12)
+                self.for_add_experience(value, 200)
+        except KeyError:
+            print('Without jobs')
+
+    def add_experience_sample_2(self):
+        self.y_pos = 221
+        try:
+            for value in data_for_cv_exp_2[self.chat_id].values():
+                if self.y_pos == 221:
+                    self.add_font('DejaVuB', 'B', 'DejaVuSansCondensed-Bold.ttf', uni=True)
+                    self.set_font("DejaVuB", style='B', size=12)
+                else:
+                    self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
+                    self.set_font("DejaVu", style='', size=12)
+                self.for_add_experience(value, 221)
+        except KeyError:
+            print('Without jobs')
+
+    def add_experience_sample_3(self):
+        self.y_pos = 242
+        try:
+            for value in data_for_cv_exp_3[self.chat_id].values():
+                if self.y_pos == 242:
+                    self.add_font('DejaVuB', 'B', 'DejaVuSansCondensed-Bold.ttf', uni=True)
+                    self.set_font("DejaVuB", style='B', size=12)
+                else:
+                    self.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
+                    self.set_font("DejaVu", style='', size=12)
+                self.for_add_experience(value, 242)
+        except KeyError:
+            print('Without jobs')
 
     def create_cv_template(self):
         self.add_page()
@@ -1360,3 +1415,5 @@ class PDF(FPDF):
         self.add_hard_skill()
         self.add_experience()
         self.add_experience_sample()
+        self.add_experience_sample_2()
+        self.add_experience_sample_3()
