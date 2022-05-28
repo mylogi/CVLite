@@ -9,11 +9,9 @@ from dotenv import load_dotenv
 from states.base import BaseState
 
 from states.bot_states import Hello, FirstTemplate, SecondTemplate, CreateCV, AddName, AddSurname, AddMobNumber, \
-    AddEmail, \
-    AddLinkedIn, AddYourPosition, AddAboutYou, English, Ukrainian, Collaboration, Feedback, TimeManagement, Analysis, \
-    Python, OOP, DataStructures, \
-    Django, AddNewJob1, AddCompanyName1, AddCompanyExp1, AddNewJob2, AddCompanyName2, AddCompanyExp2, AddNewJob3, \
-    AddCompanyName3, AddCompanyExp3, CreatePDF, FinishIteration
+    AddEmail, AddLinkedIn, AddYourPosition, AddAboutYou, English, Ukrainian, Collaboration, Feedback, TimeManagement, \
+    Analysis, Python, OOP, DataStructures, Django, AddNewJob1, AddCompanyName1, AddCompanyExp1, AddNewJob2, \
+    AddCompanyName2, AddCompanyExp2, AddNewJob3, AddCompanyName3, AddCompanyExp3, CreatePDF, FinishIteration
 
 load_dotenv()
 
@@ -22,6 +20,13 @@ bot = telebot.TeleBot(os.getenv('TELEGRAM_SECRET'))
 clients: dict = {}
 
 current_template: dict = {}
+
+symbols_tuple = (
+    '-', '@', '.', '+', '!', '&',
+    '?', '(', ')', ':', '/', '\\',
+    '*', '%', '$', ' ', '=', '_',
+    ',', '#', ';', '*'
+)
 
 text_direct_tuple: tuple = (
     AddName,
@@ -200,8 +205,7 @@ def returned_step(state, chat_id):
 def message_check(message):
     message_text = message.text
     for i in range(len(message_text)):
-        if message_text[i].isalpha() or message_text[i].isdigit() or message_text[i] in (
-                '-', '@', '.', '+', '!', '&', '?', '(', ')', ':', '/', '\\', '*', '%', '$', ' ', '=', '_'):
+        if message_text[i].isalpha() or message_text[i].isdigit() or message_text[i] in symbols_tuple:
             continue
         else:
             return False

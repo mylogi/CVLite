@@ -349,7 +349,7 @@ class SecondTemplate(Template):
 
 
 class FirstTip(Tip):
-    text = "First tip"
+    text = "<b>Before you start working with the creation of CV in CVLite.</b> \n\nPrepare information about yourself in text form, so your interaction will be better and more pleasant."
 
     def process_call_back(self, message: types.CallbackQuery):
         if message.data:
@@ -363,7 +363,7 @@ class FirstTip(Tip):
 
 
 class SecondTip(Tip):
-    text = "Second tip"
+    text = "<b>Bot is ready to work in tandem with the user.</b> \n\nThe CVLite has some requirements and restrictions on the information it receives, but it's temporary. We are working to make your interaction even more flexible."
 
     def process_call_back(self, message: types.CallbackQuery):
         if message.data:
@@ -377,7 +377,7 @@ class SecondTip(Tip):
 
 
 class ThirdTip(Tip):
-    text = "Third tip"
+    text = "<b>Today is a great day to try.</b> \n\nAfter that, you will receive your resume in <b>PDF</b> format, which will allow you to quickly start your job search."
 
     def process_call_back(self, message: types.CallbackQuery):
         if message.data:
@@ -842,15 +842,6 @@ class Experience(BaseStateData):
     text = "<b>Experience</b> \n\nAdd relevant work experience (maximum three jobs)."
 
     def get_keyboard(self):
-        print()
-        print(data_for_cv)
-        print(data_for_cv_lang)
-        print(data_for_cv_soft)
-        print(data_for_cv_hard)
-        print(data_for_cv_exp_1)
-        print(data_for_cv_exp_2)
-        print(data_for_cv_exp_3)
-        print()
         keyboard = types.InlineKeyboardMarkup()
         if len(data_number_exp[self.chat_id]) == 3:
             keyboard.add(types.InlineKeyboardButton(text='Next step', callback_data='next state: CreatePDF'))
